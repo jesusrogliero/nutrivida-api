@@ -35,13 +35,28 @@ return [
     |
     */
 
+ 
     'guards' => [
         'web' => [
             'driver' => 'session',
             'provider' => 'users',
         ],
-    ],
 
+        'client' => [
+            'driver' => 'token', 
+            'provider'  => 'users',
+            'hash' => false
+        ],
+        
+        # Habilita el uso de TokenGuard
+
+        'api' => [
+            #'driver' => 'token',
+            'driver' => 'passport',
+            'provider' => 'users',
+            'hash' => false,
+        ],
+    ],
     /*
     |--------------------------------------------------------------------------
     | User Providers
