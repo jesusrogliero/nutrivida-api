@@ -14,6 +14,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+# Grupo de rutas para la autenticacion
+Route::group( ['prefix' => "auth"], function() {
+	Route::post('login', 'AuthController@login');
+	Route::post('signup', 'AuthController@signup');
+});
+
+
+# rutas para usuarios autenticados
+Route::group(['middleware' => ['auth:api']], function () {
+	
+	Route::resource("users", "UsersController");
+
+	
 });
