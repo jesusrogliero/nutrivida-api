@@ -23,7 +23,11 @@ Route::group( ['prefix' => "auth"], function() {
 
 # rutas para usuarios autenticados
 Route::group(['middleware' => ['auth:api']], function () {
-	
+
+	Route::resource('roles', 'RolesController');
+	Route::resource('employes', 'EmployesController');
+	Route::resource('MachineriesConsumables', 'MachineriesConsumablesController');
+
 	Route::resource("users", "UsersController");
 
 	
