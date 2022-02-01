@@ -23,6 +23,7 @@ class MachineriesConsumablesController extends Controller
                 ["field" => "machineries_consumables.id"],
                 ["field" => "name", "conditions" => "machineries_consumables.name"],
                 ["field" => "stock", "conditions" => "machineries_consumables.stock"],
+                ["field" => "description", "conditions" => "machineries_consumables.description"],
                 ["field" => "requirement", "conditions" => "machineries_consumables.requirement"],
                 ["field" => "machineries_consumables.created_at"],
                 ["field" => "machineries_consumables.updated_at"]
@@ -57,6 +58,7 @@ class MachineriesConsumablesController extends Controller
             $new_resource->name = $request->name;
             $new_resource->stock = $request->stock;
             $new_resource->requirement = $request->requirement;
+            $new_resource->description = $request->description;
 
             $new_resource->save();
 
@@ -83,8 +85,8 @@ class MachineriesConsumablesController extends Controller
     {
         try {
 
-            $consumable = MachineriesConsumable::findOrFail($id);
-            return response()->json($machineries_consumables);
+            $machinerie_consumable = MachineriesConsumable::findOrFail($id);
+            return response()->json($machinerie_consumable);
 
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -114,6 +116,7 @@ class MachineriesConsumablesController extends Controller
             $consumable->name = $request->name;
             $consumable->stock = $request->stock;
             $consumable->requirement = $request->requirement;
+            $consumable->description = $request->description;
 
             $consumable->save();
 
