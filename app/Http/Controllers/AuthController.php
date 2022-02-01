@@ -7,7 +7,6 @@ use App\Models\UsersRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -52,8 +51,7 @@ class AuthController extends Controller
             # retorno el AccessToken y el codigo 201
             return response()->json([
                 'access_token' => $tokenResult->accessToken,
-                'token_type'   => 'Bearer',
-                'expires_at'   => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
+                'user' => $user
             ], 201);
 
         } catch(\Exception $e) {
@@ -92,13 +90,17 @@ class AuthController extends Controller
 	    	$tokenResult = $user->createToken('Personal Access Token');
 	    	$token = $tokenResult->token;
             $token->save();
+
+            $user_role = UsersRole::where('user_id', $user->id)->first();
+
             
+            
+            $user->user_role = $user_role->role_id;
 
             # retorna 202 que es !Ha sido completada la accion¡
 	    	return response()->json([
-                'access_token' => $tokenResult->accessToken,
-                'token_type'   => 'Bearer',
-	            'expires_at'   => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
+                'token' => $tokenResult->accessToken,
+                'user' => $user
 	        ], 202);
 
     	}catch(\Exception $e) {
@@ -110,6 +112,10 @@ class AuthController extends Controller
     			'code' => $e->getCode()
     		], 422);
     	}
+    }
+
+    public function getSession(Request $request) {
+        return response()->json( ['valid' => auth()->check()], 200);
     }
 
 
