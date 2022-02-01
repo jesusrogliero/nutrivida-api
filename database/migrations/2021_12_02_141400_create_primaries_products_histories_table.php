@@ -17,7 +17,8 @@ class CreatePrimariesProductsHistoriesTable extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
-            $table->integer('sent_to_mixer');
+            $table->string('type_accion');
+            $table->integer('quantity');
             $table->unsignedBigInteger('primary_product_id');
             $table->foreign('primary_product_id')->references('id')->on('primaries_products');
             $table->timestamps();
