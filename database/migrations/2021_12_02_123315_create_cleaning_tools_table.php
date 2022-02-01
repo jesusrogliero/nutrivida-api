@@ -16,9 +16,8 @@ class CreateCleaningToolsTable extends Migration
         Schema::create('cleaning_tools', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('requeriment');
-            $table->unsignedBigInteger('employe_id');
-            $table->foreign('employe_id')->references('id')->on('employes');
+            $table->string('description')->nullable();
+            $table->string('requirement')->nullable();
             $table->integer('stock');
             $table->timestamps();
         });
