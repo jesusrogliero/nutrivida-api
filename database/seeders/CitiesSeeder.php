@@ -516,7 +516,7 @@ class CitiesSeeder extends Seeder
         );
 
         foreach ($cities as $city) {
-            Presentation::firstOrCreate($city, $city);
+            City::firstOrCreate($city, $city);
         }
     }
 }
