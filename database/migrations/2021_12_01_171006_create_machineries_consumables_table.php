@@ -17,7 +17,8 @@ class CreateMachineriesConsumablesTable extends Migration
             $table->id();
             $table->string('name');
             $table->integer('stock');
-            $table->string('requirement');
+            $table->string('description')->nullable();
+            $table->string('requirement')->nullable();
             $table->timestamps();
         });
     }
