@@ -16,10 +16,12 @@ class CreateCleaningSuppliesTable extends Migration
         Schema::create('cleaning_supplies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('description')->nullable();
             $table->integer('stock');
             $table->unsignedBigInteger('presentation_id');
             $table->foreign('presentation_id')->references('id')->on('presentations');
-            $table->string('requeriment');
+            
+            $table->string('requirement')->nullable();
             $table->timestamps();
         });
     }
