@@ -20,13 +20,28 @@ Route::group( ['prefix' => "auth"], function() {
 	Route::post('signup', 'AuthController@signup');
 });
 
+Route::get('hola', function() {
+	return 'hola';
+});
+
 
 # rutas para usuarios autenticados
 Route::group(['middleware' => ['auth:api']], function () {
 
+	
+	Route::get('get_session', 'AuthController@getSession');
 	Route::resource('roles', 'RolesController');
 	Route::resource('employes', 'EmployesController');
-	Route::resource('MachineriesConsumables', 'MachineriesConsumablesController');
+	Route::get('get_positions', 'EmployesController@show_positions');
+	Route::resource('machineries_consumables', 'MachineriesConsumablesController');
+	Route::resource('cleaning_Supplies', 'CleaningSuppliesController');
+	Route::get('presentations', 'CleaningSuppliesController@show_presentations');
+	Route::resource('cleaning_tools', 'CleaningToolsController');
+	Route::resource('primaries_products', 'PrimariesProductsController');
+	Route::get('primaries_products_histories', 'PrimariesProductsHistories@index');
+	Route::resource('nonconforming_products', 'NonconformingProductsController');
+
+	Route::resource('products_finals', 'ProductsFinalsController');
 
 	Route::resource("users", "UsersController");
 
