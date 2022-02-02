@@ -17,12 +17,15 @@ class CreateEmployesTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('lastname');
-            $table->string('position');
+            $table->unsignedBigInteger('position_id');
+            $table->foreign('position_id')->references('id')->on('positions');
             $table->string('cedula');
             $table->date('data_admission');
             $table->string('address');
-            $table->string('city');
-            $table->string('province');
+            $table->unsignedBigInteger('city_id');
+            $table->foreign('city_id')->references('id')->on('cities');
+            $table->unsignedBigInteger('province_id');
+            $table->foreign('province_id')->references('id')->on('provinces');
             $table->string('nacionality');
             $table->string('phone');
             $table->boolean('genere');
