@@ -71,7 +71,7 @@ class NonconformingProductsController extends Controller
             $user_role = UsersRole::where('user_id', $user->id)->first();
             
             if( $user_role->role_id != 1 && $user_role->role_id != 2) 
-                throw new \Exception("Usted No Esta Autorizado Para Esta Sección", 1);
+                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
 
 
             \DB::beginTransaction();
@@ -123,6 +123,11 @@ class NonconformingProductsController extends Controller
     public function show($id)
     {
         try {
+            $user = $request->user();
+            $user_role = UsersRole::where('user_id', $user->id)->first();
+            
+            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
+                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
 
             $product_NC = NonconformingProduct::findOrFail($id);
             return response()->json($product_NC);
@@ -150,6 +155,11 @@ class NonconformingProductsController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            $user = $request->user();
+            $user_role = UsersRole::where('user_id', $user->id)->first();
+            
+            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
+                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
 
             $product_NC = NonconformingProduct::findOrFail($id);
             
@@ -181,9 +191,13 @@ class NonconformingProductsController extends Controller
     public function destroy($id)
     {
         try {
+            $user = $request->user();
+            $user_role = UsersRole::where('user_id', $user->id)->first();
+            
+            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
+                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
 
             $product_NC = NonconformingProduct::findOrFail($id);
-            
             $product_NC->delete();
 
             return response()->json(null, 204);
