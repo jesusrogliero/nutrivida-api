@@ -50,7 +50,9 @@ class RolesController extends Controller
     public function store(Request $request)
     {
         try {
-
+            if( empty( $request->name) )
+                throw new \Exception("Debes ingresar el nombre del Cargo", 1);
+                
             $new_role = new Role();
             $new_role->name = $request->name;
             $new_role->save();
@@ -102,6 +104,8 @@ class RolesController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            if( empty( $request->name) )
+                throw new \Exception("Debes ingresar el nombre del Cargo", 1);
 
             $role = Role::findOrFail($id);
             $role->name = $request->name;
