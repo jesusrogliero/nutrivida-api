@@ -7,6 +7,7 @@ use App\Models\UsersRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class AuthController extends Controller
 {
@@ -51,6 +52,7 @@ class AuthController extends Controller
             # retorno el AccessToken y el codigo 201
             return response()->json([
                 'access_token' => $tokenResult->accessToken,
+                'expires_at'   => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
                 'user' => $user
             ], 201);
 
@@ -100,6 +102,7 @@ class AuthController extends Controller
             # retorna 202 que es !Ha sido completada la accion¡
 	    	return response()->json([
                 'token' => $tokenResult->accessToken,
+                'expires_at'   => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
                 'user' => $user
 	        ], 202);
 
