@@ -28,13 +28,15 @@ Route::get('hola', function() {
 # rutas para usuarios autenticados
 Route::group(['middleware' => ['auth:api']], function () {
 
-	
+	Route::resource('users', 'UsersController');
+
 	Route::get('get_session', 'AuthController@getSession');
 	Route::resource('roles', 'RolesController');
 	
 	Route::resource('employes', 'EmployesController');
 	Route::get('get_provinces', 'EmployesController@show_provinces');
 	Route::get('get_cities_of_provinces/{province_id}', 'EmployesController@show_cities_of_provinces');
+	Route::resource('militiamen', 'MilitiamenController');
 
 	Route::get('get_positions', 'EmployesController@show_positions');
 	Route::resource('machineries_consumables', 'MachineriesConsumablesController');
