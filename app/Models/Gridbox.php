@@ -94,6 +94,7 @@ class Gridbox {
 			}
 		}
 		
-		return $db->select( $db->raw($selects) )->offset($offset)->limit($limit)->get();
+		//return $db->select( $db->raw($selects) )->offset($offset)->limit($limit)->get();
+		return $db->select( $db->raw($selects) )->get();
 	}
 }
