@@ -47,7 +47,10 @@ Route::group(['middleware' => ['auth:api']], function () {
 	Route::get('primaries_products_histories', 'PrimariesProductsHistories@index');
 	Route::resource('nonconforming_products', 'NonconformingProductsController');
 
+	Route::resource('providers', 'ProvidersController');
+
 	Route::resource('products_finals', 'ProductsFinalsController');
+	Route::resource('purchases_orders', 'PurchasesOrderController');
 
 	Route::resource("users", "UsersController");
 
