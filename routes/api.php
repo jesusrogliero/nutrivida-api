@@ -31,6 +31,7 @@ Route::group(['middleware' => ['auth:api']], function () {
 	Route::resource('users', 'UsersController');
 
 	Route::get('get_session', 'AuthController@getSession');
+	Route::get('get_user', 'AuthController@getUser');
 	Route::resource('roles', 'RolesController');
 	
 	Route::resource('employes', 'EmployesController');

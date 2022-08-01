@@ -121,5 +121,9 @@ class AuthController extends Controller
         return response()->json( ['valid' => auth()->check()], 200);
     }
 
+    public function getUser(Request $request) {
+        return response()->json( ['user' => $request->user()], 200);
+    }
+
 
 }
