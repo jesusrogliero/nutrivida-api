@@ -122,7 +122,7 @@ class AuthController extends Controller
     }
 
     public function getUser(Request $request) {
-        return response()->json( ['user' => $request->user()], 200);
+        return response()->json($request->user(), 200);
     }
 
 
