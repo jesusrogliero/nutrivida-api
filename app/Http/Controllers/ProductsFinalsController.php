@@ -54,10 +54,7 @@ class ProductsFinalsController extends Controller
             if( empty( $request->name) )
                 throw new \Exception("Debes ingresar el nombre del producto", 1);
 
-            if( empty( $request->stock ))
-                throw new \Exception("Debes ingresar la existencia del producto", 1);
-
-            if( $request->stock < 0 )
+            if( $request->stock < 0  || !is_numeric($request->stock) )
                 throw new \Exception("Debes ingresar una existencia correcta", 1);
                 
             $new_product = new ProductsFinal([
