@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\CleaningTool;
-use App\Models\Gridbox;
+use App\Models\GridboxNew;
 
 class CleaningToolsController extends Controller
 {
@@ -30,7 +30,7 @@ class CleaningToolsController extends Controller
             ];
 
             # Obteniendo la lista
-            $cleaning_tools = Gridbox::pagination("cleaning_tools", $params, false, $request);
+            $cleaning_tools = GridboxNew::pagination("cleaning_tools", $params, $request);
             return response()->json($cleaning_tools);
 
         } catch(\Exception $e) {

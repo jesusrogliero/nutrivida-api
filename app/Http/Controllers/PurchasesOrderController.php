@@ -34,7 +34,7 @@ class PurchasesOrderController extends Controller
                 ["field" => "state", "conditions" => "purchases_orders_states.name"],
                 ["field" => "provider", "conditions" => "providers.name"],
                 ["field" => "total_products", "conditions" => "purchases_orders.total_products"],
-                ["field" => "total_load", "conditions" => "purchases_orders.total_unit"],
+                ["field" => "total_load", "conditions" => "purchases_orders.total_load"],
                 ["field" => "purchases_orders.created_at"],
                 ["field" => "purchases_orders.updated_at"]
             ];
@@ -107,6 +107,7 @@ class PurchasesOrderController extends Controller
             $new_order->state_id = 1;
             $new_order->provider_id = $request->provider_id;
             $new_order->total_products = 0;
+            $new_order->nro_sada_guide = $request->nro_sada_guide;
             $new_order->total_load = 0;
             $new_order->save();
 

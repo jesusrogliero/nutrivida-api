@@ -20,8 +20,10 @@ class CreatePurchasesOrdersTable extends Migration
             $table->foreign('state_id')->references('id')->on('purchases_orders_states');
             $table->unsignedBigInteger('provider_id');
             $table->foreign('provider_id')->references('id')->on('providers');
+            $table->string('nro_sada_guide');
             $table->integer('total_products');
             $table->integer('total_load');
+            $table->string('observations');
             $table->timestamps();
         });
     }
