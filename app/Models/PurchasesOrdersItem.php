@@ -14,6 +14,7 @@ class PurchasesOrdersItem extends Model
         'quantity',
         'due_date',
         'purchase_order_id',
-        'nro_lote'
+        'nro_lote',
+        'nonconform_quantity',
     ];
 }
