@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Middleware\RolesMiddleware;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -18,10 +20,6 @@ use Illuminate\Support\Facades\Route;
 Route::group( ['prefix' => "auth"], function() {
 	Route::post('login', 'AuthController@login');
 	Route::post('signup', 'AuthController@signup');
-});
-
-Route::get('hola', function() {
-	return 'hola';
 });
 
 
@@ -51,9 +49,23 @@ Route::group(['middleware' => ['auth:api']], function () {
 	Route::resource('providers', 'ProvidersController');
 
 	Route::resource('products_finals', 'ProductsFinalsController');
-	Route::resource('purchases_orders', 'PurchasesOrderController');
+
+	Route::group(['middleware' => [RolesMiddleware::class]], function() {
+		# Orden de Ingreso
+		Route::resource('purchases_orders', 'PurchasesOrderController');
+		Route::get('get_purchases_orders_items/{id}', 'PurchasesOrdersItemsController@index');
+		Route::post('purchases_orders_items', 'PurchasesOrdersItemsController@store');
+		Route::get('purchases_orders_items/{id}', 'PurchasesOrdersItemsController@show');
+		Route::put('purchases_orders_items/{id}', 'PurchasesOrdersItemsController@update');
+		Route::delete('purchases_orders_items/{id}', 'PurchasesOrdersItemsController@destroy');
+		Route::get('approve_purchase/{id}', 'PurchasesOrderController@approve');
+		Route::post('set_observation/{id}', 'PurchasesOrderController@set_observation');
+	});
+	
 
 	Route::resource("users", "UsersController");
+
+	Route::resource("types_identities", "TypesIdentitiesController");
 
 	
 });
