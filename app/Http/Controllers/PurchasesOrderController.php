@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Gridbox;
+use App\Models\GridboxNew;
 use App\Models\UsersRole;
 use App\Models\PurchasesOrder;
+use App\Models\PurchasesOrdersItem;
 use App\Models\PurchasesOrdersState;
+use App\Models\PrimariesProduct;
+use App\Models\NonconformingProduct;
 
 class PurchasesOrderController extends Controller
 {
@@ -18,23 +21,16 @@ class PurchasesOrderController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-
-            if( $user_role->role_id != 1 && $user_role->role_id != 2 ) {
-                throw new \Exception("Usted No Esta Autorizado Para Esta Sección", 1);
-            }
-
             $params = $request->all();
 
             #establezco los campos a mostrar
             $params["select"] = [
                 ["field" => "purchases_orders.id"],
-                ["field" => "invoice_number", "conditions" => "purchases_orders.number_invoice"],
+                ["field" => "nro_sada_guide", "conditions" => "purchases_orders.nro_sada_guide"],
                 ["field" => "state", "conditions" => "purchases_orders_states.name"],
                 ["field" => "provider", "conditions" => "providers.name"],
                 ["field" => "total_products", "conditions" => "purchases_orders.total_products"],
-                ["field" => "total_load", "conditions" => "purchases_orders.total_load"],
+                ["field" => "total_nonconforming", "conditions" => "CONCAT(purchases_orders.total_nonconforming, ' KG')"],
                 ["field" => "purchases_orders.created_at"],
                 ["field" => "purchases_orders.updated_at"]
             ];
@@ -46,7 +42,7 @@ class PurchasesOrderController extends Controller
             ];
             
             # Obteniendo la lista
-            $purchases_orders = Gridbox::pagination("purchases_orders", $params, false, $request);
+            $purchases_orders = GridboxNew::pagination("purchases_orders", $params, false, $request);
             return response()->json($purchases_orders);
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -66,15 +62,35 @@ class PurchasesOrderController extends Controller
      */
     public function get_purchases_states(Request $request)
     {
-        try{  
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-
-            if( $user_role->role_id != 1 && $user_role->role_id != 2 ) 
-                throw new \Exception("Usted No Esta Autorizado Para Esta Sección", 1);
+        try{
             
             $states = PurchasesOrdersState::findAll();
             return response()->json($states);
+
+        } catch(\Exception $e) {
+            \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
+            return \Response::json([
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ], 422);
+        }
+    }
+
+      /**
+     * set observation
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function set_observation(Request $request, $id)
+    {
+        try{
+            $order = PurchasesOrder::findOrFail($id);
+            $order->observations = $request->observations;
+            $order->save();
+
+            return response()->json('Observacion Guardada', 202);
 
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -96,24 +112,73 @@ class PurchasesOrderController extends Controller
     public function store(Request $request)
     {
         try{  
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-
-            if( $user_role->role_id != 1 && $user_role->role_id != 2 ) 
-                throw new \Exception("Usted No Esta Autorizado Para Esta Sección", 1);
             
             $new_order = new PurchasesOrder();
-            $new_order->number_invoice = $request->number_invoice;
-            $new_order->state_id = 1;
             $new_order->provider_id = $request->provider_id;
-            $new_order->total_products = 0;
             $new_order->nro_sada_guide = $request->nro_sada_guide;
-            $new_order->total_load = 0;
+            
             $new_order->save();
 
             return response()->json('Orden Creada Correctamente', 201);
 
         } catch(\Exception $e) {
+            \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
+            return \Response::json([
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ], 422);
+        }
+    }
+
+     /**
+     * Approve an entry order
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function approve(Request $request, $id)
+    {
+        try{  
+            \DB::beginTransaction();
+
+            $order = PurchasesOrder::findOrFail($id);
+            
+            if( $order->state_id != 1)
+                throw new \Exception("Esta order ya fue Aprobada", 1);
+        
+            
+            $items = PurchasesOrdersItem::where('purchase_order_id','=', $order->id)->get();
+
+            # ingreso los productos al inventario
+            foreach ($items as $item){
+                $primary_product = PrimariesProduct::findOrFail($item->primary_product_id);
+
+                $primary_product->stock = $primary_product->stock + ($item->quantity - $item->nonconform_quantity);
+                $primary_product->save();
+
+                # establezco la cantidad no conforme del producto
+                $pnc = NonconformingProduct::where('primary_product_id', '=', $item->primary_product_id)->first();
+
+                # en caso que no exista el registro
+                if(empty($pnc)) {
+                    $pnc = new NonconformingProduct();
+                    $pnc->primary_product_id = $item->primary_product_id;
+                }
+
+                $pnc->quantity = $pnc->quantity + $item->nonconform_quantity;
+                $pnc->save();
+            }
+
+            $order->state_id = 2;
+            $order->save();
+            
+            \DB::commit();
+            return response()->json("Orden Ingresada al inventario correctamente", 202);
+
+        } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),
@@ -132,13 +197,7 @@ class PurchasesOrderController extends Controller
      */
     public function show($id)
     {
-        try{  
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-
-            if( $user_role->role_id != 1 && $user_role->role_id != 2 ) 
-                throw new \Exception("Usted No Esta Autorizado Para Esta Sección", 1);
-            
+        try{   
             $order = PurchasesOrder::findOrFail($id);
             return response()->json($order);
 
@@ -163,19 +222,17 @@ class PurchasesOrderController extends Controller
      */
     public function update(Request $request, $id)
     {
-        try{  
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-
-            if( $user_role->role_id != 1 && $user_role->role_id != 2 ) 
-                throw new \Exception("Usted No Esta Autorizado Para Esta Sección", 1);
-            
-            if( $order->state_id != 1)
-                throw new \Exception("No Es Posible Editar Una Orden Procesada", 1);
+        try{      
             $order = PurchasesOrder::findOrFail($id);
-            $order->number_invoice = $request->number_invoice;
+
+            if( $order->state_id != 1)
+            throw new \Exception("No Es Posible Editar Una Orden Procesada", 1);
+
             $order->provider_id = $request->provider_id;
-            return response()->json($order);
+            $order->nro_sada_guide = $request->nro_sada_guide;
+            $order->save();
+            
+            return response()->json('Orden Actualizada', 202);
 
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -197,21 +254,21 @@ class PurchasesOrderController extends Controller
     public function destroy($id)
     {
         try{  
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-
-            if( $user_role->role_id != 1 && $user_role->role_id != 2 ) 
-                throw new \Exception("Usted No Esta Autorizado Para Esta Sección", 1);
-
+            \DB::beginTransaction();
             $order = PurchasesOrder::findOrFail($id);
             
             if($order->state_id != 1)
                 throw new \Exception("No es posible eliminar una orden procesada", 1);
             
+
+            PurchasesOrdersItem::where('purchase_order_id','=', $order->id)->delete();
             $order->delete();
+
+            \DB::commit();
             return response()->json(null, 204);
 
         } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),
