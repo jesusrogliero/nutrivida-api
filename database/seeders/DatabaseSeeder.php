@@ -21,7 +21,9 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             PresentationSeeder::class,
             UsersRoleSeeder::class,
-            PositionsSeeder::class
+            PositionsSeeder::class,
+            PurchasesOrdersStatesSeeder::class,
+            TypesIdentitiesSeeder::class,
         ]);
     }
 
