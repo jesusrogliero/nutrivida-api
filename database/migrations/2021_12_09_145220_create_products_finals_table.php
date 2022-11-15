@@ -16,7 +16,7 @@ class CreateProductsFinalsTable extends Migration
         Schema::create('products_finals', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('stock');
+            $table->decimal('stock', 10, 2);
             $table->timestamps();
         });
     }
