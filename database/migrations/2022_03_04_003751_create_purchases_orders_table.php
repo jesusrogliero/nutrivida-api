@@ -15,15 +15,15 @@ class CreatePurchasesOrdersTable extends Migration
     {
         Schema::create('purchases_orders', function (Blueprint $table) {
             $table->id();
-            $table->integer('number_invoice');
-            $table->unsignedBigInteger('state_id');
+            $table->unsignedBigInteger('state_id')->default(1);
             $table->foreign('state_id')->references('id')->on('purchases_orders_states');
             $table->unsignedBigInteger('provider_id');
             $table->foreign('provider_id')->references('id')->on('providers');
             $table->string('nro_sada_guide');
-            $table->integer('total_products');
-            $table->integer('total_load');
-            $table->string('observations');
+            $table->integer('total_products')->default(0);
+            $table->decimal('total_load', 10, 2)->default(0);
+            $table->decimal('total_nonconforming', 10, 2)->default(0);
+            $table->string('observations')->nullable();
             $table->timestamps();
         });
     }
