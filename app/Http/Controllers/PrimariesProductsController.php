@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\PrimariesProduct;
-use App\Models\Gridbox;
+use App\Models\GridboxNew;
 
 class PrimariesProductsController extends Controller
 {
@@ -22,13 +22,13 @@ class PrimariesProductsController extends Controller
             $params["select"] = [
                 ["field" => "primaries_products.id"],
                 ["field" => "name", "conditions" => "primaries_products.name"],
-                ["field" => "stock", "conditions" => "primaries_products.stock"],
+                ["field" => "stock", "conditions" => "CONCAT(primaries_products.stock, ' KG')"],
                 ["field" => "primaries_products.created_at"],
                 ["field" => "primaries_products.updated_at"]
             ];
             
             # Obteniendo la lista
-            $primaries_products = Gridbox::pagination("primaries_products", $params, false, $request);
+            $primaries_products = GridboxNew::pagination("primaries_products", $params, false, $request);
             return response()->json($primaries_products);
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -53,9 +53,6 @@ class PrimariesProductsController extends Controller
 
             if( empty($request->name) )
             throw new \Exception("El nombre del producto es obligatorio");
-
-            if ( empty( $request->stock) )
-                throw new \Exception("La existencia del producto es obligatoria");
             
             if( $request->stock < 0 )
                 throw new \Exception("La existencia no puede ser menor a cero");

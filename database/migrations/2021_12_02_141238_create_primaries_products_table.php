@@ -16,7 +16,7 @@ class CreatePrimariesProductsTable extends Migration
         Schema::create('primaries_products', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('stock');
+            $table->decimal('stock', 10, 2);
             $table->timestamps();
         });
     }
