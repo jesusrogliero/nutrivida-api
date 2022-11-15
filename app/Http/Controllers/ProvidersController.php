@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Gridbox;
+use App\Models\GridboxNew;
 use App\Models\UsersRole;
 use App\Models\Provider;
 
@@ -30,14 +30,20 @@ class ProvidersController extends Controller
             $params["select"] = [
                 ["field" => "providers.id"],
                 ["field" => "name", "conditions" => "providers.name"],
-                ["field" => "rif", "conditions" => "providers.rif"],
+                ["field" => "identity", "conditions" => "CONCAT(types_identities.type, '-' , FORMAT(providers.identity, 0))"],
                 ["field" => "address", "conditions" => "providers.address"],
+                ["field" => "phone", "conditions" => "providers.phone"],
                 ["field" => "providers.created_at"],
                 ["field" => "providers.updated_at"]
             ];
+
+            #establezco los joins necesarios
+            $params["join"] = [
+                [ "type" => "inner", "join" => ["types_identities", "types_identities.id", "=", "providers.type_identity_id"] ],
+            ];
             
             # Obteniendo la lista
-            $providers = Gridbox::pagination("providers", $params, false, $request);
+            $providers = GridboxNew::pagination("providers", $params, false, $request);
             return response()->json($providers);
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -70,18 +76,25 @@ class ProvidersController extends Controller
             if( empty($request->name) )
                 throw new \Exception("El nombne del provedor es obligatorio");
 
-            if( empty($request->rif) )
-                throw new \Exception("Debes ingresar la identificacion del Provedor");
+            if( empty($request->identity) )
+                throw new \Exception("Debes ingresar la identificación del Provedor");
+            
+            if( empty($request->type_identity_id) )
+                throw new \Exception("Debes ingresar el tipo de identificación del Provedor");
                 
             if( empty($request->address) )
                 throw new \Exception("Debe ingresar una observacion");
             
+            if( empty($request->phone) )
+                throw new \Exception("Debe ingresar el telefono del provedor");
 
             # Registro el provedor
             $new_provider = new Provider();
             $new_provider->name = $request->name;
-            $new_provider->rif = $request->rif;
+            $new_provider->identity = $request->identity;
+            $new_provider->type_identity_id = $request->type_identity_id;
             $new_provider->address =$request->address;
+            $new_provider->phone = $request->phone;
             $new_provider->save();
 
            return response()->json('Registrado Correctamente', 201);
@@ -112,8 +125,14 @@ class ProvidersController extends Controller
             if( $user_role->role_id != 1 && $user_role->role_id != 2) 
                 throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
 
-            $provider = Provider::findOrFail($id);
-           return response()->json($provider);
+            
+            $provider = \DB::table('providers')
+            ->join('types_identities', 'types_identities.id', '=', 'providers.type_identity_id')
+            ->select('providers.*', 'types_identities.type')
+            ->where('providers.id', '=', $id)
+            ->get();
+
+           return response()->json($provider[0]);
 
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -143,12 +162,13 @@ class ProvidersController extends Controller
                 throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
 
             $provider = Provider::findOrFail($id);
-            
             $provider->name = $request->name;
-            $provider->rif = $request->rif;
-            $provider->address = $request->address;
-
+            $provider->identity = $request->identity;
+            $provider->type_identity_id = $request->type_identity_id;
+            $provider->address =$request->address;
+            $provider->phone = $request->phone;
             $provider->save();
+
             return response()->json('Actualizado Correctamente', 202);
 
         } catch(\Exception $e) {
