@@ -18,7 +18,7 @@ class CreatePrimariesProductsHistoriesTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
             $table->string('type_accion');
-            $table->integer('quantity');
+            $table->decimal('quantity', 10, 2);
             $table->unsignedBigInteger('primary_product_id');
             $table->foreign('primary_product_id')->references('id')->on('primaries_products');
             $table->timestamps();
