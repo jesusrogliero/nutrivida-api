@@ -17,11 +17,12 @@ class CreatePurchasesOrdersItemsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('primary_product_id');
             $table->foreign('primary_product_id')->references('id')->on('primaries_products');
-            $table->integer('quantity');
+            $table->decimal('quantity', 10, 2);
             $table->date('due_date');
             $table->unsignedBigInteger('purchase_order_id');
             $table->foreign('purchase_order_id')->references('id')->on('purchases_orders');
             $table->string('nro_lote');
+            $table->decimal('nonconform_quantity', 10, 2); 
             $table->timestamps();
         });
     }
