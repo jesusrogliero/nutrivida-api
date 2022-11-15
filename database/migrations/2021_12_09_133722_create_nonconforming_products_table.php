@@ -17,8 +17,7 @@ class CreateNonconformingProductsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('primary_product_id');
             $table->foreign('primary_product_id')->references('id')->on('primaries_products');
-            $table->integer('quantity');
-            $table->string('observation');
+            $table->decimal('quantity', 10, 2)->default(0);
             $table->timestamps();
         });
     }

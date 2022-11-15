@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Gridbox;
+use App\Models\GridboxNew;
 use App\Models\NonconformingProduct;
 use App\Models\PrimariesProduct;
 use App\Models\UsersRole;
@@ -31,8 +31,7 @@ class NonconformingProductsController extends Controller
             $params["select"] = [
                 ["field" => "nonconforming_products.id"],
                 ["field" => "primary_product", "conditions" => "primaries_products.name"],
-                ["field" => "quantity", "conditions" => "nonconforming_products.quantity"],
-                ["field" => "observation", "conditions" => "nonconforming_products.observation"],
+                ["field" => "quantity", "conditions" => "CONCAT(FORMAT(nonconforming_products.quantity, 2), ' KG')"],
                 ["field" => "nonconforming_products.created_at"],
                 ["field" => "nonconforming_products.updated_at"]
             ];
@@ -44,7 +43,7 @@ class NonconformingProductsController extends Controller
             ];
             
             # Obteniendo la lista
-            $nonconforming_products = Gridbox::pagination("nonconforming_products", $params, false, $request);
+            $nonconforming_products = GridboxNew::pagination("nonconforming_products", $params, false, $request);
             return response()->json($nonconforming_products);
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -82,21 +81,25 @@ class NonconformingProductsController extends Controller
             if( empty($request->primary_product_id) )
                 throw new \Exception("Debe ingresar un producto primario");
                 
-            if( empty($request->observation) )
-                throw new \Exception("Debe ingresar una observacion");
-                
 
-            # retiro el produto del inventario
             $primary_product = PrimariesProduct::findOrFail($request->primary_product_id);
+
+            if($primary_product->stock < $request->quantity)
+                throw new \Exception("No hay existencia suficiente de este producto en el inventario", 1);
+
+            $pnc = NonconformingProduct::where('primary_product_id', '=', $request->primary_product_id)->first();
+
+            # si no existe creo un registro nuevoa
+            if(empty($pnc))
+                $new_PNC = new NonconformingProduct();
+
             $primary_product->stock = $primary_product->stock - $request->quantity;
             $primary_product->save();
 
             # Registro el producto
-            $new_PNC = new NonconformingProduct();
-            $new_PNC->primary_product_id = $request->primary_product_id;
-            $new_PNC->quantity = $request->quantity;
-            $new_PNC->observation =$request->observation;
-            $new_PNC->save();
+            $pnc->primary_product_id = $request->primary_product_id;
+            $pnc->quantity = $pnc->quantity +  $request->quantity;
+            $pnc->save();
 
            \DB::commit();
            return response()->json('Registrado Correctamente', 201);
