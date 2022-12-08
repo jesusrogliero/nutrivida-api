@@ -61,6 +61,11 @@ Route::group(['middleware' => ['auth:api']], function () {
 		Route::get('approve_purchase/{id}', 'PurchasesOrderController@approve');
 		Route::post('set_observation/{id}', 'PurchasesOrderController@set_observation');
 	});
+
+	Route::resource('formulas', 'FormulasController');
+	Route::get('get_formula_items/{id}', 'FormulasItemsController@get_items');
+	Route::resource('formulas_items', 'FormulasItemsController');
+	Route::resource('lines_productions', 'LinesController');
 	
 
 	Route::resource("users", "UsersController");
