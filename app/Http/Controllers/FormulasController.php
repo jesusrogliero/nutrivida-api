@@ -145,12 +145,17 @@ class FormulasController extends Controller
      */
     public function destroy($id)
     {
-        try{      
+        try{    
+            \DB::beginTransaction();
+
             $formula = Formula::findOrFail($id);
-            $formula->delete();            
+            $items = FormulasItem::where('formula_id', '=', $formula->id)->delete();
+            $formula->delete();           
+            \DB::commit(); 
             return response()->json(null, 204);
 
         } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),
