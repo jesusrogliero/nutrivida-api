@@ -31,8 +31,8 @@ class UserSeeder extends Seeder
             ],
 
             [
-                'name' => 'Profesor Edgar',
-                'lastname' => 'Rogliero Colmenares',
+                'name' => 'Profesor',
+                'lastname' => 'Edgar',
                 'email' => 'admin2@api.com',
                 'password' => Hash::make('manager')
             ],
