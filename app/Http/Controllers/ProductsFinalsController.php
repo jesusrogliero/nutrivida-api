@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Gridbox;
+use App\Models\GridboxNew;
 use App\Models\ProductsFinal;
 
 class ProductsFinalsController extends Controller
@@ -28,7 +28,7 @@ class ProductsFinalsController extends Controller
             ];
             
             # Obteniendo la lista
-            $primaries_products = Gridbox::pagination("products_finals", $params, false, $request);
+            $primaries_products = GridboxNew::pagination("products_finals", $params, false, $request);
             return response()->json($primaries_products);
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
