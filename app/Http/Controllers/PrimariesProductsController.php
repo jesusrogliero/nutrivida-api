@@ -22,7 +22,7 @@ class PrimariesProductsController extends Controller
             $params["select"] = [
                 ["field" => "primaries_products.id"],
                 ["field" => "name", "conditions" => "primaries_products.name"],
-                ["field" => "stock", "conditions" => "CONCAT(primaries_products.stock, ' KG')"],
+                ["field" => "stock", "conditions" => "CONCAT(FORMAT(primaries_products.stock, 2), ' KG')"],
                 ["field" => "primaries_products.created_at"],
                 ["field" => "primaries_products.updated_at"]
             ];
