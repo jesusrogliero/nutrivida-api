@@ -17,6 +17,8 @@ class CreateProductsFinalsTable extends Migration
             $table->id();
             $table->string('name');
             $table->decimal('stock', 10, 2);
+            $table->enum('type', ['Institucional', 'Comercial']);
+            $table->string('presentation');
             $table->timestamps();
         });
     }

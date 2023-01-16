@@ -10,6 +10,6 @@ class ProductsFinal extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'stock'
+        'name', 'stock', 'type', 'presentation'
     ];
 }

@@ -21,8 +21,9 @@ class ProductsFinalsController extends Controller
             #establezco los campos a mostrar
             $params["select"] = [
                 ["field" => "products_finals.id"],
-                ["field" => "name", "conditions" => "products_finals.name"],
-                ["field" => "stock", "conditions" => "products_finals.stock"],
+                ["field" => "name", "conditions" => "CONCAT(products_finals.name, ' ', products_finals.presentation)"],
+                ["field" => "stock", "conditions" => "CONCAT(FORMAT(products_finals.stock, 2), ' KG')"],
+                ["field" => "type", "conditions" => "products_finals.type"],
                 ["field" => "products_finals.created_at"],
                 ["field" => "products_finals.updated_at"]
             ];
@@ -51,21 +52,20 @@ class ProductsFinalsController extends Controller
     {
         try {
 
-            if( empty( $request->name) )
-                throw new \Exception("Debes ingresar el nombre del producto", 1);
+            if( empty( $request->name) ) throw new \Exception("Debes ingresar el nombre del producto", 1);
+            if( empty( $request->type) ) throw new \Exception("Debes ingresar el tipo de producto", 1);
+            if( empty( $request->name) ) throw new \Exception("Debes ingresar la presentacion del producto", 1);
+            if( $request->stock < 0  || !is_numeric($request->stock) ) throw new \Exception("Debes ingresar una existencia correcta", 1);
 
-            if( $request->stock < 0  || !is_numeric($request->stock) )
-                throw new \Exception("Debes ingresar una existencia correcta", 1);
-                
+
             $new_product = new ProductsFinal([
                 'name' => $request->name,
-                'stock' => $request->stock
+                'stock' => $request->stock,
+                'type' => $request->type,
+                'presentation' => $request->presentation,
             ]);
-
             $new_product->save();
-
             return response()->json('Agregado Correctamente', 201);
-
 
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -87,7 +87,6 @@ class ProductsFinalsController extends Controller
     public function show($id)
     {
         try {
-                
             $product_final = ProductsFinal::findOrFail($id);
             return response()->json($product_final);
 
@@ -102,49 +101,4 @@ class ProductsFinalsController extends Controller
         }
     }
 
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        try {  
-            throw new \Exception("Aun no esta permitido actualizar un producto", 1);
-        
-        } catch(\Exception $e) {
-            \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
-            return \Response::json([
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'message' => $e->getMessage(),
-                'code' => $e->getCode()
-            ], 422);
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        try {  
-            throw new \Exception("Aun no esta permitido eliminar un producto", 1);
-        
-        } catch(\Exception $e) {
-            \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
-            return \Response::json([
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'message' => $e->getMessage(),
-                'code' => $e->getCode()
-            ], 422);
-        }
-    }
 }
