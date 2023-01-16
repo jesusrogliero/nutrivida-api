@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             PositionsSeeder::class,
             PurchasesOrdersStatesSeeder::class,
             TypesIdentitiesSeeder::class,
+            TestDataSeeder::class,
         ]);
     }
 
