@@ -5,11 +5,11 @@ namespace App\Models;
 # clase que se encarga del listado y filtraciones
 class GridboxNew {
 
-	public static function pagination($table = "", $params = [], $request = null){
-		$limit = empty($params["limit"]) ? 20 : ($params["limit"] > 20 ? 20 : $params["limit"]); 
+	public static function pagination($table = "", $params = [], $request = null) {
+		$limit = empty($params["limit"]) ? 10 : $params["limit"]; 
 		$page = empty( $params["page"] ) ? 1 : ( $params["page"] > 0 ? $params["page"] : 1 );
 		$offset =  ($limit * ($page - 1) );
-		$order_by = empty( $params["order_by"] ) ? [] : $params["order_by"];
+		$order_by = empty( $params["order_by"] ) ? [] : json_decode($params['order_by'],true);
 		$filters = empty( $params["filters"] ) ? [] : $params["filters"];
 		$selects = "";
 
@@ -58,27 +58,30 @@ class GridboxNew {
 		if( !empty($params['wherein']) )
 			$db->wherein($params['wherein']);
 
+		
+
 		# verificando los select
 		if( !empty($params["select"])  ){
 			foreach ($params["select"] as $column) {
 
 				if( !empty($filters[ $column["field"]  ]) )
 					$db->having($column["field"], "LIKE",  "%{$filters[$column["field"]]}%");
-				
-				if( !empty($order_by[ $column["field"] ]) )
-                    $db->orderBy($column["field"], $order_by[ $column["field"] ]);
-                
-					
-				
+			
+				if( !empty($order_by[ $column["field"]] )) {
+					$db->orderBy($column["field"], $order_by[ $column["field"]] );
+				}
 
 				$selects .= !empty($selects) ? "," : ""; 
 				$selects .= ( empty($column["conditions"]) ? "{$column['field']}" :  "{$column['conditions']} AS {$column['field']}");
 			}
 		}
 		
-		$result =  $db->select( $db->raw($selects) )->offset($offset)->limit($limit)->get();
-        $total_page = $db->select( $db->raw($selects) )->count();
+		if($limit == -1)
+			$result =  $db->select( $db->raw($selects) )->get();
+		else
+			$result =  $db->select( $db->raw($selects) )->offset($offset)->limit($limit)->get();
         
-        return ['result' => $result, 'total_pages' => $total_page];
+		$total_page = $db->select( $db->raw($selects) )->count();
+        return ['result' => $result, 'total_pages' => $total_page, 'sql' => $db->toSql()];
 	}
 }
