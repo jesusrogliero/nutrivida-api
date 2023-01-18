@@ -18,7 +18,7 @@ class FormulasItemsController extends Controller
     {
         try {
             $params = $request->all();
-
+            
             # establezco los campos a mostrar
             $params["select"] = [
                 ["field" => "formulas_items.id"],
@@ -32,6 +32,8 @@ class FormulasItemsController extends Controller
            $params["join"] = [
                 [ "type" => "inner", "join" => ["primaries_products", "primaries_products.id", "=", "formulas_items.primary_product_id"] ],
             ];
+
+            $params['where'] = [['formulas_items.formula_id', '=', $formula_id]];
             
             # Obteniendo la lista
             $formula_items = GridboxNew::pagination("formulas_items", $params, false, $request);
@@ -69,7 +71,7 @@ class FormulasItemsController extends Controller
             $item->save();
 
             $formula = Formula::findOrFail($request->formula_id);
-            $formula->total_formula = $request->total_formula + $item->quantity;
+            $formula->total_formula = $formula->total_formula + $item->quantity;
             $formula->save();
 
             \DB::commit();
@@ -130,14 +132,14 @@ class FormulasItemsController extends Controller
             $item = FormulasItem::findOrFail($id);
 
             $formula = Formula::findOrFail($item->formula_id);
-            $formula->total_formula = $request->total_formula - $item->quantity;
+            $formula->total_formula = $formula->total_formula - $item->quantity;
 
             
             $item->primary_product_id = $request->primary_product_id;
             $item->quantity = $request->quantity;
             $item->save();
 
-            $formula->total_formula = $request->total_formula + $item->quantity;
+            $formula->total_formula = $formula->total_formula + $item->quantity;
             $formula->save();
 
             \DB::commit();
@@ -164,11 +166,20 @@ class FormulasItemsController extends Controller
     public function destroy($id)
     {
         try {
-            $item = FormulasItem::findOrFail($id);
-            $item->delete();
+            \DB::beginTransaction();
 
+            $item = FormulasItem::findOrFail($id);
+            $formula = Formula::find($item->formula_id);
+            $formula->total_formula = $formula->total_formula - $item->quantity;
+
+            $formula->save();
+            $item->delete();
+            
+            \DB::commit();
             return response()->json(null, 204);
+
         } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),
