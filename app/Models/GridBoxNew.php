@@ -82,6 +82,6 @@ class GridboxNew {
 			$result =  $db->select( $db->raw($selects) )->offset($offset)->limit($limit)->get();
         
 		$total_page = $db->select( $db->raw($selects) )->count();
-        return ['result' => $result, 'total_pages' => $total_page, 'sql' => $db->toSql()];
+        return ['result' => $result, 'total_pages' => $total_page];
 	}
 }
