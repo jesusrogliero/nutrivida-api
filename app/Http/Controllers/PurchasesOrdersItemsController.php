@@ -36,6 +36,8 @@ class PurchasesOrdersItemsController extends Controller
            $params["join"] = [
                 [ "type" => "inner", "join" => ["primaries_products", "primaries_products.id", "=", "purchases_orders_items.primary_product_id"] ],
             ];
+
+            $params['where'] = [['purchases_orders_items.purchase_order_id', '=', $id]];
             
             # Obteniendo la lista
             $purchases_orders_items = GridboxNew::pagination("purchases_orders_items", $params, false, $request);
