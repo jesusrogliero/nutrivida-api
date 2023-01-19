@@ -113,18 +113,11 @@ class PrimariesProductsController extends Controller
     {
         try {
 
-            if( empty($request->name) )
-            throw new \Exception("El nombre del producto es obligatorio");
-
-            if ( empty( $request->stock) )
-                throw new \Exception("La existencia del producto es obligatoria");
-            
-            if( $request->stock < 0 )
-                throw new \Exception("La existencia no puede ser menor a cero");
-
+            if( empty($request->name) ) throw new \Exception("El nombre del producto es obligatorio");
+            if ( empty( $request->stock) ) throw new \Exception("La existencia del producto es obligatoria");
+            if( $request->stock < 0 ) throw new \Exception("La existencia no puede ser menor a cero");
 
             $product = PrimariesProduct::findOrFail($id);
-            
             $product->name = $request->name;
             $product->stock = $request->stock;
 
@@ -152,11 +145,8 @@ class PrimariesProductsController extends Controller
     public function destroy($id)
     {
         try {
-
             $product = PrimariesProduct::findOrFail($id);
-            
             $product->delete();
-
             return response()->json(null, 204);
 
         } catch(\Exception $e) {
