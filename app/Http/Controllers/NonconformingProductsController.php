@@ -32,6 +32,7 @@ class NonconformingProductsController extends Controller
                 ["field" => "nonconforming_products.id"],
                 ["field" => "primary_product", "conditions" => "primaries_products.name"],
                 ["field" => "quantity", "conditions" => "CONCAT(FORMAT(nonconforming_products.quantity, 2), ' KG')"],
+                ["field" => "observation", "conditions" => "nonconforming_products.observation"],
                 ["field" => "nonconforming_products.created_at"],
                 ["field" => "nonconforming_products.updated_at"]
             ];
@@ -72,7 +73,6 @@ class NonconformingProductsController extends Controller
             if( $user_role->role_id != 1 && $user_role->role_id != 2) 
                 throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
 
-
             \DB::beginTransaction();
 
             if($request->quantity < 0)
@@ -80,26 +80,20 @@ class NonconformingProductsController extends Controller
 
             if( empty($request->primary_product_id) )
                 throw new \Exception("Debe ingresar un producto primario");
-                
 
             $primary_product = PrimariesProduct::findOrFail($request->primary_product_id);
 
             if($primary_product->stock < $request->quantity)
                 throw new \Exception("No hay existencia suficiente de este producto en el inventario", 1);
 
-            $pnc = NonconformingProduct::where('primary_product_id', '=', $request->primary_product_id)->first();
-
-            # si no existe creo un registro nuevoa
-            if(empty($pnc))
-                $new_PNC = new NonconformingProduct();
+            $new_pnc = new NonconformingProduct();
+            $new_pnc->primary_product_id = $request->primary_product_id;
+            $new_pnc->quantity = $request->quantity;
+            $new_pnc->observation = $request->observation;
+            $new_pnc->save();
 
             $primary_product->stock = $primary_product->stock - $request->quantity;
             $primary_product->save();
-
-            # Registro el producto
-            $pnc->primary_product_id = $request->primary_product_id;
-            $pnc->quantity = $pnc->quantity +  $request->quantity;
-            $pnc->save();
 
            \DB::commit();
            return response()->json('Registrado Correctamente', 201);
@@ -147,14 +141,15 @@ class NonconformingProductsController extends Controller
         
     }
 
+    /*
 
- /**
+    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
-     */
+     
     public function update(Request $request, $id)
     {
         try {
@@ -190,7 +185,7 @@ class NonconformingProductsController extends Controller
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
-     */
+     
     public function destroy($id)
     {
         try {
@@ -215,4 +210,6 @@ class NonconformingProductsController extends Controller
              ], 422);
         }
     }
+
+    */
 }
