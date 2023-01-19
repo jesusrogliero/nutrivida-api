@@ -9,5 +9,5 @@ class NonconformingProduct extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['primary_product_id', 'quantity'];
+    protected $fillable = ['primary_product_id', 'quantity', 'observation'];
 }
