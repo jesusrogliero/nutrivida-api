@@ -9,5 +9,5 @@ class SuppliesMinor extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'stock'];
+    protected $fillable = ['name', 'stock', 'consumption_weight_package'];
 }

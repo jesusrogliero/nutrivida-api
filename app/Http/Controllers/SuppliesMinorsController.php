@@ -52,11 +52,13 @@ class SuppliesMinorsController extends Controller
         try {  
             if(empty($request->name)) throw new \Exception("El nombre del empaque es requerido", 1);
             if($request->stock < 0) throw new \Exception("La cantidad del Articulo no es correcta", 1);
+            if($request->consumption_weight_package < 0) throw new \Exception("el peso por empaque no es correcto", 1);
             
             # Creo el articulo de la orden
             $new_product = new SuppliesMinor();
             $new_product->name = $request->name;
             $new_product->stock = $request->stock;
+            $new_product->consumption_weight_package = $request->consumption_weight_package;
             $new_product->save();
 
             return response()->json('Guardado Correctamente', 201);
@@ -106,12 +108,13 @@ class SuppliesMinorsController extends Controller
     {
         try {
             if( empty($request->name) ) throw new \Exception("El nombre del producto es obligatorio");
-            if ( empty( $request->stock) ) throw new \Exception("La existencia del producto es obligatoria");
             if( $request->stock < 0 ) throw new \Exception("La existencia no puede ser menor a cero");
+            if($request->consumption_weight_package < 0) throw new \Exception("el peso por empaque no es correcto", 1);
 
             $product = SuppliesMinor::findOrFail($id);
             $product->name = $request->name;
             $product->stock = $request->stock;
+            $product->consumption_weight_package = $request->consumption_weight;
             $product->save();
 
             return response()->json('Actualizado Correctamente', 202);
