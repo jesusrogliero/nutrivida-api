@@ -76,6 +76,32 @@ class PrimariesProductsController extends Controller
         }
     }
 
+    
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function get_all_primaries_products()
+    {
+        try {
+
+            $products = \DB::table('primaries_products')->get();
+            return response()->json($products);
+
+        } catch(\Exception $e) {
+             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
+             return \Response::json([
+                 'file' => $e->getFile(),
+                 'line' => $e->getLine(),
+                 'message' => $e->getMessage(),
+                 'code' => $e->getCode()
+             ], 422);
+        }
+        
+    }
+
     /**
      * Display the specified resource.
      *
