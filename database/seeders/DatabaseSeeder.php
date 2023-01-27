@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             TypesIdentitiesSeeder::class,
             LinesProductionsSeeder::class,
             TestDataSeeder::class,
+            SuppliesMinorsSeeder::class,
         ]);
     }
 
