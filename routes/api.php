@@ -43,12 +43,17 @@ Route::group(['middleware' => ['auth:api']], function () {
 	Route::get('presentations', 'CleaningSuppliesController@show_presentations');
 	Route::resource('cleaning_tools', 'CleaningToolsController');
 	Route::resource('primaries_products', 'PrimariesProductsController');
+	Route::get('get_all_primaries_products', 'PrimariesProductsController@get_all_primaries_products');
 	Route::get('primaries_products_histories', 'PrimariesProductsHistories@index');
 	Route::resource('nonconforming_products', 'NonconformingProductsController');
 
 	Route::resource('providers', 'ProvidersController');
 
 	Route::resource('products_finals', 'ProductsFinalsController');
+	Route::resource('supplies_minors', 'SuppliesMinorsController');
+	Route::resource('supplies_minors_noconform', 'SuppliesMinorsNoconformController');
+	Route::get('transactions', 'TransactionsController@index');
+
 
 	Route::group(['middleware' => [RolesMiddleware::class]], function() {
 		# Orden de Ingreso
@@ -63,10 +68,16 @@ Route::group(['middleware' => ['auth:api']], function () {
 	});
 
 	Route::resource('formulas', 'FormulasController');
-	Route::get('get_formula_items/{id}', 'FormulasItemsController@get_items');
+	Route::get('get_formula_items/{formula_id}', 'FormulasItemsController@get_items');
 	Route::resource('formulas_items', 'FormulasItemsController');
 	Route::resource('lines_productions', 'LinesController');
-	
+
+	Route::resource('productions_orders', 'ProductionsOrdersController');
+
+	Route::resource('productions_consumptions', 'ProductionsConsumptionsController');
+	Route::get('get_consumption_items/{consumption_id}', 'ProductionsConsumptionsItemsController@get_consumption_items');
+	Route::get('show_consumption_item/{consumption_id}', 'ProductionsConsumptionsItemsController@show');
+	Route::put('update_consumption_item/{consumption_id}', 'ProductionsConsumptionsItemsController@update');
 
 	Route::resource("users", "UsersController");
 
