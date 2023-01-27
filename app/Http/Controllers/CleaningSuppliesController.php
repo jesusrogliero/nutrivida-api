@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Gridbox;
 use App\Models\CleaningSupply;
 use App\Models\Presentation;
+use App\Models\Transaction;
 
 class CleaningSuppliesController extends Controller
 {
@@ -86,6 +87,8 @@ class CleaningSuppliesController extends Controller
     {
         try {
 
+            \DB::beginTransaction();
+
             if( empty($request->name ) )
                 throw new \Exception("Debes ingresar el nombre del insumo", 1);
                 
@@ -109,9 +112,18 @@ class CleaningSuppliesController extends Controller
 
             $new_clean_suply->save();
 
+            new Transaction([
+                'user_id' => $request->user_id,
+                'action' => true,
+                'module' => 'Insumos de Limpieza',
+                'observation' => 'Nuevo Insumo de Limpieza'
+            ]);
+
+            \DB::commit();
             return response()->json('Registrado Correctamente', 201);
 
         } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),
@@ -156,6 +168,7 @@ class CleaningSuppliesController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            \DB::beginTransaction();
 
             if( empty($request->name ) )
                 throw new \Exception("Debes ingresar el nombre del insumo", 1);
@@ -180,9 +193,18 @@ class CleaningSuppliesController extends Controller
 
             $clean_suply->save();
 
+            new Transaction([
+                'user_id' => $request->user_id,
+                'action' => true,
+                'module' => 'Insumos de Limpieza',
+                'observation' => 'Actualizado Insumo de Limpieza'
+            ]);
+
+            \DB::commit();
             return response()->json('Actualizado Correctamente', 202);
 
         } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),
