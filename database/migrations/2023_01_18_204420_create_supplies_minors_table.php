@@ -18,6 +18,7 @@ class CreateSuppliesMinorsTable extends Migration
             $table->string('name');
             $table->decimal('stock', 10, 2);
             $table->decimal('consumption_weight_package', 10, 4);
+            $table->integer('unid')->default(0);
             $table->timestamps();
         });
     }
