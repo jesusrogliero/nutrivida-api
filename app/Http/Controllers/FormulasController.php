@@ -59,6 +59,8 @@ class FormulasController extends Controller
     public function store(Request $request)
     {
         try{  
+            \DB::beginTransaction();
+
             if(empty($request->name)) throw new \Exception("El nombre de la formula es requerido", 1);
             if(empty($request->line_id)) throw new \Exception("La linea de la formula es requerida", 1);
             if(empty($request->quantity_batch)) throw new \Exception("La cantidad por batch es requerida", 1);
@@ -70,9 +72,20 @@ class FormulasController extends Controller
             $new_formula->quantity_batch = $request->quantity_batch;
             $new_formula->save();
 
+            $user = $request->user();
+            \DB::table('transactions')->insert([
+                'user_id' => $user->id,
+                'action' => true,
+                'module' => 'Formula',
+                'observation' => 'Se registro: '. $new_formula->name,
+                'created_at' => new \DateTime(),
+            ]);
+
+            \DB::commit();
             return response()->json('Formula Creada Correctamente', 201);
 
         } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),
@@ -116,6 +129,8 @@ class FormulasController extends Controller
     public function update(Request $request, $id)
     {
         try{      
+            \DB::beginTransaction();
+
             $formula = Formula::findOrFail($id);
 
             $formula->name = $request->name;
@@ -123,9 +138,20 @@ class FormulasController extends Controller
             $formula->quantity_batch = $request->quantity_batch;
             $formula->save();
             
+            $user = $request->user();
+            \DB::table('transactions')->insert([
+                'user_id' => $user->id,
+                'action' => true,
+                'module' => 'Formula',
+                'observation' => 'Se actualizó: '. $formula->name,
+                'created_at' => new \DateTime(),
+            ]);
+
+            \BD::commit();
             return response()->json('Formula Actualizada', 202);
 
         } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),
@@ -143,14 +169,24 @@ class FormulasController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request ,$id)
     {
         try{    
             \DB::beginTransaction();
 
             $formula = Formula::findOrFail($id);
             $items = FormulasItem::where('formula_id', '=', $formula->id)->delete();
-            $formula->delete();           
+            $formula->delete();  
+            
+            $user = $request->user();
+            \DB::table('transactions')->insert([
+                'user_id' => $user->id,
+                'action' => false,
+                'module' => 'Formula',
+                'observation' => 'Eliminó: '. $formula->name,
+                'created_at' => new \DateTime(),
+            ]);
+
             \DB::commit(); 
             return response()->json(null, 204);
 

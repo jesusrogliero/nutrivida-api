@@ -74,6 +74,15 @@ class FormulasItemsController extends Controller
             $formula->total_formula = $formula->total_formula + $item->quantity;
             $formula->save();
 
+            $user = $request->user();
+            \DB::table('transactions')->insert([
+                'user_id' => $user->id,
+                'action' => true,
+                'module' => 'Formula Ingrediente',
+                'observation' => ' Nuevo ingrediente en: '. $formula->name,
+                'created_at' => new \DateTime(),
+            ]);
+
             \DB::commit();
             return response()->json('Ingrediente Agregado Correctamente', 201);
 
@@ -163,7 +172,7 @@ class FormulasItemsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
             \DB::beginTransaction();
@@ -174,6 +183,15 @@ class FormulasItemsController extends Controller
 
             $formula->save();
             $item->delete();
+
+            $user = $request->user();
+            \DB::table('transactions')->insert([
+                'user_id' => $user->id,
+                'action' => false,
+                'module' => 'Formula Ingrediente',
+                'observation' => 'Se eliminó un ingrediente de: '. $formula->name,
+                'created_at' => new \DateTime(),
+            ]);
             
             \DB::commit();
             return response()->json(null, 204);
