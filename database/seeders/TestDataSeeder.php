@@ -26,6 +26,10 @@ class TestDataSeeder extends Seeder
                 "stock" => 11383.65,
             ],
             [ 
+                "name" => 'Leche Completa',
+                "stock" => 5000,
+            ],
+            [ 
                 "name" => 'Azucar',
                 "stock" => 186280.95,
             ],

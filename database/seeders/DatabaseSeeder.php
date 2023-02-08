@@ -24,9 +24,11 @@ class DatabaseSeeder extends Seeder
             PositionsSeeder::class,
             PurchasesOrdersStatesSeeder::class,
             TypesIdentitiesSeeder::class,
+            ProvidersSeeder::class,
             LinesProductionsSeeder::class,
             TestDataSeeder::class,
             SuppliesMinorsSeeder::class,
+            FormulasSeeder::class,
         ]);
     }
 
