@@ -7,9 +7,25 @@ use App\Models\GridboxNew;
 use App\Models\ProductionsOrder;
 use App\Models\ProductionsConsumptionsItem;
 use App\Models\ProductionsConsumption;
+use App\Models\ConsumptionsSuppliesMinor;
+use App\Models\LossProduction;
+use App\Models\LossProductionsItem;
+use App\Models\Formula;
 
 class ProductionsOrdersController extends Controller
 {
+
+    public function __construct() {
+        $this->middleware('can:productions_orders.index')->only('index');
+        $this->middleware('can:productions_orders.store')->only('store');
+        $this->middleware('can:productions_orders.show')->only('show');
+        $this->middleware('can:productions_orders.update')->only('update');
+        $this->middleware('can:productions_orders.destroy')->only('destroy');
+        
+        $this->middleware('can:productions_orders.get_formula_with_production_order')
+        ->only('get_formula_with_production_order');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -24,7 +40,7 @@ class ProductionsOrdersController extends Controller
             $params["select"] = [
                 ["field" => "productions_orders.id"],
                 ["field" => "product_final", "conditions" => "products_finals.name"],
-                ["field" => "formula", "conditions" => "formulas.name"],
+                ["field" => "formula", "conditions" => "CONCAT(formulas.name, ' ', formulas.quantity_batch, 'Kg')"],
                 ["field" => "quantity", "conditions" => "CONCAT(FORMAT(productions_orders.quantity, 2), ' Kg')"],
                 ["field" => "state", "conditions" => "IF(productions_orders.state_id = 0, 'Pendiente', 'Completado')"],
                 ["field" => "productions_orders.created_at"],
@@ -70,7 +86,7 @@ class ProductionsOrdersController extends Controller
             $new_order->quantity = $request->quantity;
             $new_order->save();
 
-            return response()->json('Formula Creada Correctamente', 201);
+            return response()->json('Orden de Producción Creada Correctamente', 201);
 
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -95,6 +111,37 @@ class ProductionsOrdersController extends Controller
         try{  
             $order = ProductionsOrder::findOrFail($id);
             return response()->json($order);
+
+        } catch(\Exception $e) {
+            \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
+            return \Response::json([
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ], 422);
+        }
+    }
+
+      /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function get_formula_with_production_order($production_order_id)
+    {
+        try{  
+
+            $formula = \DB::table('formulas')
+            ->join('productions_orders', 'productions_orders.formula_id', '=', 'formulas.id')
+            ->where('productions_orders.id', '=' , $production_order_id)
+            ->select('formulas.*')
+            ->first();
+
+            $order = ProductionsOrder::findOrFail($production_order_id);
+
+            return response()->json(['formula' => $formula, 'order' => $order]);
 
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
@@ -151,14 +198,29 @@ class ProductionsOrdersController extends Controller
             \DB::beginTransaction();
 
             $production_order = ProductionsOrder::findOrFail($id);
-            $consumption_order = ProductionsConsumption::where('production_order_id', $production_order->id)->first();
-            $consumption_order_items = ProductionsConsumptionsItem::where('production_consumption_id', $consumption_order->id);
 
             if($production_order->state_id === 1)
                 throw new \Exception("No es posible eliminar esta orden de producción", 1);
-                
-            $consumption_order_items->delete();
-            $consumption_order->delete();
+
+            $consumption_order = ProductionsConsumption::where('production_order_id', $production_order->id)->first();
+            
+            if( !empty($consumption_order) ) {
+                $consumption_order_items = ProductionsConsumptionsItem::where('production_consumption_id', $consumption_order->id);
+                $consumption_order_items->delete();
+
+                $consumption_supply_minor = ConsumptionsSuppliesMinor::where('consumption_id', $consumption_order->id)->first();
+                if( !empty($consumption_supply_minor) ) {
+                    $consumption_supply_minor->delete();
+                }
+    
+                $loss_production = LossProduction::where('consumption_id', $consumption_order->id)->first();
+                if( !empty($loss_production) ) {
+                    $loss_production_items = LossProductionsItem::where('loss_production_id', $loss_production->id);
+                    $loss_production_items->delete();
+                    $loss_production->delete();
+                }
+                $consumption_order->delete();
+            }
             $production_order->delete();
 
             \DB::commit();
