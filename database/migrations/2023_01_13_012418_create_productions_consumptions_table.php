@@ -17,7 +17,7 @@ class CreateProductionsConsumptionsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('production_order_id');
             $table->foreign('production_order_id')->references('id')->on('productions_orders');
-            $table->decimal('nro_batch', 3, 2);
+            $table->decimal('nro_batch', 10, 2);
             $table->decimal('total_production', 10,2);
             $table->decimal('consumption_production', 10 ,2);
             $table->timestamps();

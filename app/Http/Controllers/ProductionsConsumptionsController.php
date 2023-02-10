@@ -10,6 +10,11 @@ use App\Http\Controllers\ProductionsConsumptionsItemsController as ConsumptionsI
 class ProductionsConsumptionsController extends Controller
 {
 
+    public function __construct() {
+        $this->middleware('can:productions_consumptions.store')->only('store');
+        $this->middleware('can:productions_consumptions.show')->only('show');
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -25,10 +30,13 @@ class ProductionsConsumptionsController extends Controller
             if(empty($request->nro_batch)) throw new \Exception("Antes de Generar por favor ingrese el numro de batch realizados", 1);
 
             $production_order = ProductionsOrder::findOrFail($request->production_order_id);
-            $consumption = ProductionsConsumption::firstWhere('production_order_id', $request->order_id);
-           
+            $consumption = null;
 
-            if(empty($consumption)) {
+
+            if(empty($request->consumption_id)) {
+                
+                $consumption = ProductionsConsumption::firstWhere('production_order_id', $request->production_order_id);
+
                 $consumption = new ProductionsConsumption();
                 $consumption->production_order_id = $request->production_order_id;
                 $consumption->total_production = 0;
@@ -36,8 +44,17 @@ class ProductionsConsumptionsController extends Controller
                 $consumption->nro_batch = $request->nro_batch;
                 $consumption->save();
 
-                ConsumptionsItems::generate_items($consumption->id, $production_order->formula_id, $consumption->nro_batch);
+                ConsumptionsItems::generate_items($consumption, $production_order->formula_id);
+            
+            } else {
+                $consumption = ProductionsConsumption::findOrFail($request->production_order_id);
+                $consumption->nro_batch = $request->nro_batch;
+                $consumption->total_production = 0;
+
+                ConsumptionsItems::ajust_items($consumption, $production_order->formula_id);
             }
+
+
 
             \DB::commit();
             return response()->json(['message' => 'Orden generada correctamente', 'consumption_id' => $consumption->id], 201);
