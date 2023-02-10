@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\UsersRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -24,7 +23,6 @@ class AuthController extends Controller
                 'lastname' => 'required',
                 'email' => 'required|email|unique:users',
                 'password' => 'required',
-                'role_id' => 'required'
             ]);
                 
 
@@ -35,12 +33,6 @@ class AuthController extends Controller
             $user->email = $request->email;
             $user->password = Hash::make($request->password);
             $user->save();
-
-            # defino en la BD el tipo de usuario que acabo de ingresar
-            $user_role = new UsersRole();
-            $user_role->user_id = $user->id;
-            $user_role->role_id = $request->role_id;
-            $user_role->save();
 
             # creamos el token de autenticacion
             $tokenResult = $user->createToken('Personal Access Token');
@@ -93,11 +85,6 @@ class AuthController extends Controller
 	    	$token = $tokenResult->token;
             $token->save();
 
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-
-            
-            
-            $user->user_role = $user_role->role_id;
 
             # retorna 202 que es !Ha sido completada la accion¡
 	    	return response()->json([
