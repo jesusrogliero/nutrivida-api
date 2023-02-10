@@ -9,6 +9,15 @@ use App\Models\FormulasItem;
 
 class FormulasItemsController extends Controller
 {
+
+    public function __construct() {
+        $this->middleware('can:formula_item.index')->only('get_items');
+        $this->middleware('can:formula_item.store')->only('store');
+        $this->middleware('can:formula_item.show')->only('show');
+        $this->middleware('can:formula_item.update')->only('update');
+        $this->middleware('can:formula_item.destroy')->only('destroy');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -178,11 +187,12 @@ class FormulasItemsController extends Controller
             \DB::beginTransaction();
 
             $item = FormulasItem::findOrFail($id);
-            $formula = Formula::find($item->formula_id);
+            $formula = Formula::findOrFail($item->formula_id);
             $formula->total_formula = $formula->total_formula - $item->quantity;
 
             $formula->save();
             $item->delete();
+
 
             $user = $request->user();
             \DB::table('transactions')->insert([

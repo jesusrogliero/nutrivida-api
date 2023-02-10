@@ -5,11 +5,19 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PurchasesOrder;
 use App\Models\PurchasesOrdersItem;
-use App\Models\UsersRole;
 use App\Models\GridboxNew;
 
 class PurchasesOrdersItemsController extends Controller
 {
+
+    public function __construct() {
+        $this->middleware('can:purchases_orders_items.index')->only('index');
+        $this->middleware('can:purchases_orders_items.store')->only('store');
+        $this->middleware('can:purchases_orders_items.show')->only('show');
+        $this->middleware('can:purchases_orders_items.update')->only('update');
+        $this->middleware('can:purchases_orders_items.destroy')->only('destroy');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -193,12 +201,6 @@ class PurchasesOrdersItemsController extends Controller
     {
         try {  
             \DB::beginTransaction();
-
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-
-            if( $user_role->role_id != 1 && $user_role->role_id != 2 ) 
-                throw new \Exception("Usted No Esta Autorizado Para Esta Sección", 1);
             
             $item = PurchasesOrdersItem::findOrFail($id);
             $order = PurchasesOrder::findOrFail($item->purchase_order_id);

@@ -9,6 +9,13 @@ use App\Models\SuppliesMinor;
 
 class SuppliesMinorsNoconformController extends Controller
 {
+    public function __construct() {
+        $this->middleware('can:supplies_minors_noconform.index')->only('index');
+        $this->middleware('can:supplies_minors_noconform.store')->only('store');
+        $this->middleware('can:supplies_minors_noconform.show')->only('show');
+    }
+
+
     /**
      * Display a listing of the resource.
      *

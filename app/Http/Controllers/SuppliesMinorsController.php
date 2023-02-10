@@ -8,6 +8,14 @@ use App\Models\SuppliesMinor;
 
 class SuppliesMinorsController extends Controller
 {
+    public function __construct() {
+        $this->middleware('can:supplies_minors.index')->only('index');
+        $this->middleware('can:supplies_minors.store')->only('store');
+        $this->middleware('can:supplies_minors.show')->only('show');
+        $this->middleware('can:supplies_minors.update')->only('update');
+        $this->middleware('can:supplies_minors.update')->only('update');
+    }
+
     /**
      * Display a listing of the resource.
      *

@@ -6,10 +6,15 @@ use Illuminate\Http\Request;
 use App\Models\GridboxNew;
 use App\Models\NonconformingProduct;
 use App\Models\PrimariesProduct;
-use App\Models\UsersRole;
 
 class NonconformingProductsController extends Controller
 {
+    public function __construct() {
+        $this->middleware('can:nonconforming_products.index')->only('index');
+        $this->middleware('can:nonconforming_products.store')->only('store');
+        $this->middleware('can:nonconforming_products.show')->only('show');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -18,13 +23,7 @@ class NonconformingProductsController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-
-            if( $user_role->role_id != 1 && $user_role->role_id != 2 ) {
-                throw new \Exception("Usted No Esta Autorizado Para Esta Sección", 1);
-            }
-
+      
             $params = $request->all();
 
             #establezco los campos a mostrar
@@ -67,12 +66,6 @@ class NonconformingProductsController extends Controller
     public function store(Request $request)
     {
         try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-            
-            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
-                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
-
             \DB::beginTransaction();
 
             if($request->quantity < 0)
@@ -120,12 +113,6 @@ class NonconformingProductsController extends Controller
     public function show($id)
     {
         try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-            
-            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
-                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
-
             $product_NC = NonconformingProduct::findOrFail($id);
             return response()->json($product_NC);
 
@@ -141,75 +128,4 @@ class NonconformingProductsController extends Controller
         
     }
 
-    /*
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     
-    public function update(Request $request, $id)
-    {
-        try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-            
-            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
-                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
-
-            $product_NC = NonconformingProduct::findOrFail($id);
-            
-            $product_NC->primary_product_id = $request->primary_product_id;
-            $product_NC->quantity = $request->quantity;
-            $product_NC->observation = $request->observation;
-
-            $product_NC->save();
-
-            return response()->json('Actualizado Correctamente', 202);
-
-        } catch(\Exception $e) {
-             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
-             return \Response::json([
-                 'file' => $e->getFile(),
-                 'line' => $e->getLine(),
-                 'message' => $e->getMessage(),
-                 'code' => $e->getCode()
-             ], 422);
-        }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     
-    public function destroy($id)
-    {
-        try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-            
-            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
-                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
-
-            $product_NC = NonconformingProduct::findOrFail($id);
-            $product_NC->delete();
-
-            return response()->json(null, 204);
-
-        } catch(\Exception $e) {
-             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
-             return \Response::json([
-                 'file' => $e->getFile(),
-                 'line' => $e->getLine(),
-                 'message' => $e->getMessage(),
-                 'code' => $e->getCode()
-             ], 422);
-        }
-    }
-
-    */
 }

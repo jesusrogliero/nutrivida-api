@@ -4,11 +4,20 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\GridboxNew;
-use App\Models\UsersRole;
 use App\Models\Provider;
+use App\Models\User;
 
 class ProvidersController extends Controller
 {
+
+    public function __construct() {
+        $this->middleware('can:providers.index')->only('index');
+        $this->middleware('can:providers.store')->only('store');
+        $this->middleware('can:providers.show')->only('show');
+        $this->middleware('can:providers.update')->only('update');
+        $this->middleware('can:providers.destroy')->only('destroy');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -17,13 +26,6 @@ class ProvidersController extends Controller
     public function index(Request $request)
     {
         try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-
-            if( $user_role->role_id != 1 && $user_role->role_id != 2 ) {
-                throw new \Exception("Usted No Esta Autorizado Para Esta Sección", 1);
-            }
-
             $params = $request->all();
 
             #establezco los campos a mostrar
@@ -66,12 +68,6 @@ class ProvidersController extends Controller
     public function store(Request $request)
     {
         try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-            
-            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
-                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
-
 
             if( empty($request->name) )
                 throw new \Exception("El nombne del provedor es obligatorio");
@@ -119,12 +115,6 @@ class ProvidersController extends Controller
     public function show(Request $request, $id)
     {
         try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-            
-            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
-                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
-
             
             $provider = \DB::table('providers')
             ->join('types_identities', 'types_identities.id', '=', 'providers.type_identity_id')
@@ -155,12 +145,7 @@ class ProvidersController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-            
-            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
-                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
-
+  
             $provider = Provider::findOrFail($id);
             $provider->name = $request->name;
             $provider->identity = $request->identity;
@@ -191,12 +176,7 @@ class ProvidersController extends Controller
     public function destroy(Request $request, $id)
     {
         try {
-            $user = $request->user();
-            $user_role = UsersRole::where('user_id', $user->id)->first();
-            
-            if( $user_role->role_id != 1 && $user_role->role_id != 2) 
-                throw new \Exception("Usted No Esta Autorizado Para Realizar Esta Accion", 1);
-
+           
             $provider = Provider::findOrFail($id);
             $provider->delete();
 

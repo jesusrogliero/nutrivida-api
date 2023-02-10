@@ -10,6 +10,15 @@ use App\Models\FormulasItem;
 
 class FormulasController extends Controller
 {
+
+    public function __construct() {
+        $this->middleware('can:formula.index')->only('index');
+        $this->middleware('can:formula.store')->only('store');
+        $this->middleware('can:formula.show')->only('show');
+        $this->middleware('can:formula.update')->only('update');
+        $this->middleware('can:formula.destroy')->only('destroy');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -23,7 +32,7 @@ class FormulasController extends Controller
             #establezco los campos a mostrar
             $params["select"] = [
                 ["field" => "formulas.id"],
-                ["field" => "name", "conditions" => "formulas.name"],
+                ["field" => "name", "conditions" => "CONCAT(formulas.name, ' ' ,FORMAT(formulas.quantity_batch, 2) ,'Kg')"],
                 ["field" => "line", "conditions" => "lines.name"],
                 ["field" => "quantity_batch", "conditions" => "CONCAT(FORMAT(formulas.quantity_batch, 2), ' Kg')"],
                 ["field" => "total_formula", "conditions" => "CONCAT(FORMAT(formulas.total_formula, 2), ' Kg')"],

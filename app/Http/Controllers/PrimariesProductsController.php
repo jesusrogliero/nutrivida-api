@@ -8,6 +8,13 @@ use App\Models\GridboxNew;
 
 class PrimariesProductsController extends Controller
 {
+
+    public function __construct() {
+        $this->middleware('can:product_final.index')->only('index');
+        $this->middleware('can:product_final.store')->only('store');
+        $this->middleware('can:product_final.show')->only('show');
+    }
+
     /**
      * Display a listing of the resource.
      *

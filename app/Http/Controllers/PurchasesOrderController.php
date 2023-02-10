@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\GridboxNew;
-use App\Models\UsersRole;
 use App\Models\PurchasesOrder;
 use App\Models\PurchasesOrdersItem;
 use App\Models\PurchasesOrdersState;
@@ -13,6 +12,17 @@ use App\Models\NonconformingProduct;
 
 class PurchasesOrderController extends Controller
 {
+
+    public function __construct() {
+        $this->middleware('can:purchases_orders.index')->only('index');
+        $this->middleware('can:purchases_orders.store')->only('store');
+        $this->middleware('can:purchases_orders.show')->only('show');
+        $this->middleware('can:purchases_orders.update')->only('update');
+        $this->middleware('can:purchases_orders.destroy')->only('destroy');
+        $this->middleware('can:purchases_orders.approve_purchase')->only('approve_purchase');
+        $this->middleware('can:purchases_orders.set_observation')->only('set_observation');
+    }
+
     /**
      * Display a listing of the resource.
      *
