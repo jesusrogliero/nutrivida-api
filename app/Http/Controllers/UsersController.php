@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\GridBox;
 use App\Models\User;
-use App\Models\UsersRole;
 use Illuminate\Support\Facades\Hash;
 
 class UsersController extends Controller
@@ -26,19 +25,10 @@ class UsersController extends Controller
                 ["field" => "name", "conditions" => "users.name"],
                 ["field" => "lastname", "conditions" => "users.lastname"],
                 ["field" => "email", "conditions" => "users.email"],
-                ["field" => "role", "conditions" => "roles.name"],
                 ["field" => "users.created_at"],
                 ["field" => "users.updated_at"]
             ];
-
-
-            #establezco los joins necesarios
-            $params["join"] = [
-                [ "type" => "left", "join" => ["users_roles", "users_roles.user_id", "=", "users.id"] ],
-                [ "type" => "left", "join" => ["roles", "roles.id", "=", "users_roles.role_id"] ]
-            ];
-                        
-                        
+          
             # Obteniendo la lista
             $users = Gridbox::pagination("users", $params, false, $request);
             return response()->json($users);
@@ -93,13 +83,6 @@ class UsersController extends Controller
             $new_user->password = Hash::make($request->password);
             $new_user->save();
 
-            if( !empty( $request->role_id ) ) {
-                
-                $user_role = new UsersRole();
-                $user_role->user_id = $new_user->id;
-                $user_role->role_id = $request->role_id;
-                $user_role->save();
-            }
 
             \DB::commit();
             return response()->json("Usuario Creado Correctamente", 201);
@@ -175,20 +158,6 @@ class UsersController extends Controller
             $user->lastname = $request->lastname;            
             $user->save();
 
-            $user_role = UsersRole::where('user_id', $user->id)->first(); 
-            
-            if( empty($user_role->role_id) ) {
-                $user_role = new UsersRole();
-                $user_role->user_id = $user->id;
-                $user_role->role_id = $request->role_id;
-            
-            }else if( $request->role_id != $user_role->role_id) {
-                $user_role->role_id = $request->role_id;
-                $user_role->save();
-            }
-
-            $user_role->save();
-
             \DB::commit();
             return response()->json("Actualizado Correctamente", 202);
         
@@ -217,9 +186,6 @@ class UsersController extends Controller
 
 
             $user = User::findOrFail($id);
-            $user_role = UsersRole::where('user_id', $user->id)->first(); 
-
-            $user_role->delete();
             $user->delete();
 
             \DB::commit();
