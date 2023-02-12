@@ -119,6 +119,7 @@ class RolesSeeder extends Seeder
 		// Permisos Orden consumo de produccion
 		$permission = Permission::create(['name' => 'productions_consumptions.store'])->syncRoles([$role1, $role4]);
 		$permission = Permission::create(['name' => 'productions_consumptions.show'])->syncRoles([$role1, $role2, $role4]);
+        $permission = Permission::create(['name' => 'productions_consumptions.approve_order'])->syncRoles([$role1, $role2, $role4]);
 
 		// Permisos Items consumo de produccion
 		$permission = Permission::create(['name' => 'productions_consumptions_items.index'])->syncRoles([$role1, $role2, $role4]);
