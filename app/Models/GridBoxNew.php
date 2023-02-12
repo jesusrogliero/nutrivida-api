@@ -5,15 +5,14 @@ namespace App\Models;
 # clase que se encarga del listado y filtraciones
 class GridboxNew {
 
-	public static function pagination($table = "", $params = [], $request = null) {
+	public static function pagination($table = "", $params = [], $request) {
+		
 		$limit = empty($params["limit"]) ? 10 : $params["limit"]; 
 		$page = empty( $params["page"] ) ? 1 : ( $params["page"] > 0 ? $params["page"] : 1 );
 		$offset =  ($limit * ($page - 1) );
 		$order_by = empty( $params["order_by"] ) ? [] : json_decode($params['order_by'],true);
 		$filters = empty( $params["filters"] ) ? [] : $params["filters"];
 		$selects = "";
-
-
 
 
 		# permite hacer un registros 
@@ -75,13 +74,15 @@ class GridboxNew {
 				$selects .= ( empty($column["conditions"]) ? "{$column['field']}" :  "{$column['conditions']} AS {$column['field']}");
 			}
 		}
-		
+
+		$total_page = $db->select( $db->raw($selects) )->count();
+
 		if($limit == -1)
 			$result =  $db->select( $db->raw($selects) )->get();
 		else
 			$result =  $db->select( $db->raw($selects) )->offset($offset)->limit($limit)->get();
         
-		$total_page = $db->select( $db->raw($selects) )->count();
+			
         return ['result' => $result, 'total_pages' => $total_page];
 	}
 }
