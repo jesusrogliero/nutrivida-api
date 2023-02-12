@@ -84,6 +84,8 @@ Route::group(['middleware' => ['auth:api']], function () {
 	Route::get('get_formula_with_production_order/{production_order_id}', 'ProductionsOrdersController@get_formula_with_production_order');
 
 	Route::resource('productions_consumptions', 'ProductionsConsumptionsController')->only(['store', 'show']);
+	Route::post('approve_order/', 'ProductionsConsumptionsController@approve');
+
 	Route::resource('productions_consumptions_items','ProductionsConsumptionsItemsController')->only(['show', 'update']);
 	Route::get('get_consumption_items/{consumption_id}', 'ProductionsConsumptionsItemsController@get_consumption_items');
 
