@@ -9,6 +9,7 @@ use App\Models\PurchasesOrdersItem;
 use App\Models\PurchasesOrdersState;
 use App\Models\PrimariesProduct;
 use App\Models\NonconformingProduct;
+use App\Models\Transaction;
 
 class PurchasesOrderController extends Controller
 {
@@ -97,6 +98,10 @@ class PurchasesOrderController extends Controller
     {
         try{
             $order = PurchasesOrder::findOrFail($id);
+
+            if($order->state_id != 1)
+                throw new \Exception('Esta orden ya fue procesada');
+
             $order->observations = $request->observations;
             $order->save();
 
@@ -163,22 +168,43 @@ class PurchasesOrderController extends Controller
 
             # ingreso los productos al inventario
             foreach ($items as $item){
+
                 $primary_product = PrimariesProduct::findOrFail($item->primary_product_id);
 
+                $transaction = new Transaction([
+                    'user_id' => $request->user()->id,
+                    'action' => true,
+                    'quantity_after' => $primary_product->stock + ($item->quantity - $item->nonconform_quantity),
+                    'quantity_before' => $primary_product->stock,
+                    'quantity' => $item->quantity - $item->nonconform_quantity,
+                    'module' => 'Productos Primarios',
+                    'observation' => 'ingreso al inventario de ' . $primary_product->name
+                ]);
+                $transaction->save();
+                
                 $primary_product->stock = $primary_product->stock + ($item->quantity - $item->nonconform_quantity);
                 $primary_product->save();
 
-                # establezco la cantidad no conforme del producto
-                $pnc = NonconformingProduct::where('primary_product_id', '=', $item->primary_product_id)->first();
-
-                # en caso que no exista el registro
-                if(empty($pnc)) {
+               
+                if($item->nonconform_quantity > 0) {
                     $pnc = new NonconformingProduct();
                     $pnc->primary_product_id = $item->primary_product_id;
+                    $pnc->quantity = $item->nonconform_quantity;
+                    $pnc->save(); 
+                    
+                    $transaction = new Transaction([
+                        'user_id' => $request->user()->id,
+                        'action' => true,
+                        'quantity_after' => $pnc->quantity,
+                        'quantity_before' => 0,
+                        'quantity' => $pnc->quantity,
+                        'module' => 'Productos Primarios no conformes',
+                        'observation' => 'no conforme en el ingreso ' . $primary_product->name
+                    ]);
+                    $transaction->save();
                 }
-
-                $pnc->quantity = $pnc->quantity + $item->nonconform_quantity;
-                $pnc->save();
+              
+                
             }
 
             $order->state_id = 2;

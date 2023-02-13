@@ -72,15 +72,25 @@ class PurchasesOrdersItemsController extends Controller
         try {  
             \DB::beginTransaction();
 
-            if(empty($request->primary_product_id))
-                throw new \Exception("La materia prima es requerida", 1);
-            if(empty($request->quantity))
-                throw new \Exception("La cantidad del Articulo es requerida", 1);
-            if($request->quantity < 0)
-                throw new \Exception("La cantidad del Articulo no es correcta", 1);
-            if($request->nonconform_quantity < 0)
-                throw new \Exception("La cantidad no conforme no es correcta", 1);
+            if(empty($request->primary_product_id)) throw new \Exception("La materia prima es requerida", 1);
+            if(empty($request->quantity)) throw new \Exception("La cantidad del Articulo es requerida", 1);
+            if($request->quantity < 0) throw new \Exception("La cantidad del Articulo no es correcta", 1);
+            if($request->nonconform_quantity < 0) throw new \Exception("La cantidad no conforme no es correcta", 1);
             
+            $order = PurchasesOrder::findOrFail($request->purchase_order_id);
+
+            if($order->state_id != 1)
+                throw new \Exception('Esta orden ya fue Ingresada');
+
+            $item = PurchasesOrdersItem::where([
+                'primary_product_id' => $request->primary_product_id,
+                'purchase_order_id' => $request->purchase_order_id
+            ])->first();
+
+            if(!empty($item))
+                throw new \Exception('Este producto ya fue agregado a la orden');
+
+
             # Creo el articulo de la orden
             $new_item = new PurchasesOrdersItem();
             $new_item->primary_product_id = $request->primary_product_id;
@@ -149,18 +159,17 @@ class PurchasesOrdersItemsController extends Controller
         try {  
             \DB::beginTransaction();
 
-            if(empty($request->primary_product_id))
-                throw new \Exception("La materia prima es requerida", 1);
-            if(empty($request->quantity))
-                throw new \Exception("La cantidad del Articulo es requerida", 1);
-            if($request->quantity < 0)
-                throw new \Exception("La cantidad del Articulo no es valida", 1);
-            if($request->nonconform_quantity < 0)
-                throw new \Exception("La cantidad no conforme no es valida", 1);
+            if(empty($request->primary_product_id)) throw new \Exception("La materia prima es requerida", 1);
+            if(empty($request->quantity)) throw new \Exception("La cantidad del Articulo es requerida", 1);
+            if($request->quantity < 0) throw new \Exception("La cantidad del Articulo no es valida", 1);
+            if($request->nonconform_quantity < 0) throw new \Exception("La cantidad no conforme no es valida", 1);
             
             $item = PurchasesOrdersItem::findOrFail($id);
-
             $order = PurchasesOrder::findOrFail($item->purchase_order_id);
+
+            if($order->state_id != 1)
+                throw new \Exception('Esta orden ya fue Procesada');
+
             $order->total_load = $order->total_load - $item->quantity;
             $order->total_nonconforming = $order->total_nonconforming - $item->nonconform_quantity;
 
@@ -204,6 +213,9 @@ class PurchasesOrdersItemsController extends Controller
             
             $item = PurchasesOrdersItem::findOrFail($id);
             $order = PurchasesOrder::findOrFail($item->purchase_order_id);
+
+            if($order->state_id != 1)
+                throw new \Exception('Esta ya fue procesada');
 
             $order->total_products = $order->total_load - $item->quantity;
             $order->total_products = $order->total_products - 1;
