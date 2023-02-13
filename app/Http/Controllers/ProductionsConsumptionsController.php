@@ -10,6 +10,7 @@ use App\Http\Controllers\ProductionsConsumptionsItemsController as ConsumptionsI
 use App\Models\ConsumptionsSuppliesMinor;
 use App\Models\PrimariesProduct;
 use App\Models\SuppliesMinor;
+use App\Models\Transaction;
 
 class ProductionsConsumptionsController extends Controller
 {
@@ -35,11 +36,16 @@ class ProductionsConsumptionsController extends Controller
             if(empty($request->nro_batch)) throw new \Exception("Antes de Generar por favor ingrese el numro de batch realizados", 1);
 
             $production_order = ProductionsOrder::findOrFail($request->production_order_id);
+
+            if($production_order->state_id != 1)
+                throw new \Exception('No es posible modificar una orden ya procesada');
+
             $consumption = null;
 
+            print_r($request->consumption_id);
 
             if(empty($request->consumption_id)) {
-                
+               
                 $consumption = ProductionsConsumption::firstWhere('production_order_id', $request->production_order_id);
 
                 $consumption = new ProductionsConsumption();
@@ -52,7 +58,8 @@ class ProductionsConsumptionsController extends Controller
                 ConsumptionsItems::generate_items($consumption, $production_order->formula_id);
             
             } else {
-                $consumption = ProductionsConsumption::findOrFail($request->production_order_id);
+
+                $consumption = ProductionsConsumption::findOrFail($request->consumption_id);
                 $consumption->nro_batch = $request->nro_batch;
                 $consumption->total_production = 0;
 
@@ -88,35 +95,71 @@ class ProductionsConsumptionsController extends Controller
             \DB::beginTransaction();
 
             $production_order = ProductionsOrder::findOrFail($request->production_order_id);
+
+            if( $production_order->state_id != 1 )
+                throw new \Exception('Esta orden ya ha sido procesada');
+            
             $consumption = ProductionsConsumption::where('production_order_id', $production_order->id)->first();
             $consumption_items = ProductionsConsumptionsItem::where('production_consumption_id', $consumption->id)->get();
             $consumption_supply_minor = ConsumptionsSuppliesMinor::where('consumption_id', $consumption->id)->first();
         
             if( !empty($consumption_supply_minor)) {
 
-                $supply_minor = SuppliesMinor::findOrFail($consumption_supply_minor->supply_minor_id);
-                $big_bags = SuppliesMinor::findOrFail(10);
-                $envoplast = SuppliesMinor::findOrFail(11);
 
-                $supply_minor->stock = $supply_minor->stock - $consumption_supply_minor->consumption;
+                $supply_minor = SuppliesMinor::findOrFail($consumption_supply_minor->supply_minor_id);
+                $transaction = new Transaction([
+                    'user_id' => $request->user()->id,
+                    'action' => false,
+                    'quantity_after' => $supply_minor->stock - $consumption_supply_minor->consumption,
+                    'quantity_before' => $supply_minor->stock,
+                    'quantity' => $consumption_supply_minor->consumption,
+                    'module' => 'Insumo menor',
+                    'observation' => 'Se modificó ' . $supply_minor->name
+                ]);
+                $transaction->save();
 
                 if($supply_minor->stock < $consumption_supply_minor->consumption) {
                     throw new \Exception('No hay suficiente '. $supply_minor->name . ' Dentro del inventario');
                 }
+                $supply_minor->stock = $supply_minor->stock - $consumption_supply_minor->consumption;
                 $supply_minor->save();
-    
-                $big_bags->stock = $big_bags->stock - $consumption_supply_minor->consumption_bags;
-    
+                
+
+                $big_bags = SuppliesMinor::findOrFail(10);
+                $transaction = new Transaction([
+                    'user_id' => $request->user()->id,
+                    'action' => false,
+                    'quantity_after' => $big_bags->stock - $consumption_supply_minor->consumption_bags,
+                    'quantity_before' => $big_bags->stock,
+                    'quantity' => $consumption_supply_minor->consumption_bags,
+                    'module' => 'Insumo menor',
+                    'observation' => 'Se modificó ' . $big_bags->name
+                ]);
+                $transaction->save();
+                
                 if($big_bags->stock < $consumption_supply_minor->consumption_bags) {
                     throw new \Exception('No hay suficiente '. $big_bags->name . ' Dentro del inventario');
                 }
-                 $big_bags->save();
+                $big_bags->stock = $big_bags->stock - $consumption_supply_minor->consumption_bags;
+                $big_bags->save();
     
-                $envoplast->stock = $envoplast->stock - $consumption_supply_minor->envoplast_consumption;
-    
+                
+                $envoplast = SuppliesMinor::findOrFail(11);
+                $transaction = new Transaction([
+                    'user_id' => $request->user()->id,
+                    'action' => false,
+                    'quantity_after' => $envoplast->stock - $consumption_supply_minor->envoplast_consumption,
+                    'quantity_before' => $envoplast->stock,
+                    'quantity' => $consumption_supply_minor->envoplast_consumption,
+                    'module' => 'Insumo menor',
+                    'observation' => 'Se modificó ' . $envoplast->name
+                ]);
+                $transaction->save();
+
                 if($envoplast->stock < $consumption_supply_minor->envoplast_consumption) {
                     throw new \Exception('No hay suficiente '. $envoplast->name . ' Dentro del inventario');
                 }
+                $envoplast->stock = $envoplast->stock - $consumption_supply_minor->envoplast_consumption;
                 $envoplast->save();
 
             }
@@ -128,13 +171,24 @@ class ProductionsConsumptionsController extends Controller
                 if($primary_product->stock < $item->to_mixer)
                     throw new \Exception('No hay suficiente '. $primary_product->name . ' Dentro del inventario');
 
+                $transaction = new Transaction([
+                    'user_id' => $request->user()->id,
+                    'action' => false,
+                    'quantity_after' => floatval($primary_product->stock) - floatval($item->to_mixer),
+                    'quantity_before' => $primary_product->stock,
+                    'quantity' => floatval($item->to_mixer),
+                    'module' => 'Productos Primarios',
+                    'observation' => 'Se modificó ' . $primary_product->name
+                ]);
+                $transaction->save();
+                  
                 $primary_product->stock = floatval($primary_product->stock) - floatval($item->to_mixer);
 
                 $primary_product->save();
                 $primary_product = null;
             }
            
-            $production_order->state_id = true;
+            $production_order->state_id = 2;
             $production_order->save();
 
             \DB::commit();
