@@ -18,8 +18,9 @@ class CreateTransactionsTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users');
             $table->boolean('action')->nullable();
-            $table->decimal('quantity_after', 10, 2)->nullable();
-            $table->decimal('quantity_before', 10, 2)->nullable();
+            $table->decimal('quantity_after', 10, 2)->default(0);
+            $table->decimal('quantity_before', 10, 2)->default(0);
+            $table->decimal('quantity')->default(0);
             $table->string('module')->nullable();
             $table->string('observation')->nullable();
             $table->timestamps();

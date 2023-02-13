@@ -25,6 +25,7 @@ class TransactionsController extends Controller
                 ["field" => "action", "conditions" => "IF(transactions.action, '+', '-')"],
                 ["field" => "quantity_after", "conditions" => "CONCAT(FORMAT(transactions.quantity_after, 2), ' KG')"],
                 ["field" => "quantity_before", "conditions" => "CONCAT(FORMAT(transactions.quantity_before, 2), ' KG')"],
+                ["field" => "quantity", "conditions" => "CONCAT(FORMAT(transactions.quantity, 2), ' KG')"],
                 ["field" => "module", "conditions" => "transactions.module"],
                 ["field" => "observation", "conditions" => "transactions.observation"],
                 ["field" => "transactions.created_at"],

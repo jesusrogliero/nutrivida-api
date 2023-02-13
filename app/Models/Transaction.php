@@ -14,6 +14,7 @@ class Transaction extends Model
         'action',
         'quantity_after',
         'quantity_before',
+        'quantity',
         'module',
         'observation'
     ];
