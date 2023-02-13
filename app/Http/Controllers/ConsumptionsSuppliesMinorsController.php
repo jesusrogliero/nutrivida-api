@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ConsumptionsSuppliesMinor;
 use App\Models\ProductionsConsumption;
+use App\Models\ProductionsOrder;
 use App\Models\SuppliesMinor;
 
 class ConsumptionsSuppliesMinorsController extends Controller
@@ -42,9 +43,14 @@ class ConsumptionsSuppliesMinorsController extends Controller
             if($request->number_packages < 0) throw new \Exception("La cantidad de empaques es incorrecta", 1);
 
             $consumption_supply = ConsumptionsSuppliesMinor::where('consumption_id', $request->consumption_id)->first();
-
             $consumption = ProductionsConsumption::findOrFail($request->consumption_id);
             $supply_minor = SuppliesMinor::findOrFail($request->supply_minor_id);
+
+            $production_order = ProductionsOrder::findOrFail($consumption->production_order_id);
+            
+            if( $production_order->state_id != 1 )
+                throw new \Exception('No es posible modificar una orden procesada');
+
 
             if( empty($consumption_supply) ) {
                 $consumption_supply = new ConsumptionsSuppliesMinor();
