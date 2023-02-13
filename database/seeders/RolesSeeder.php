@@ -135,7 +135,8 @@ class RolesSeeder extends Seeder
 		$permission = Permission::create(['name' => 'loss_productions.index'])->syncRoles([$role1, $role2, $role4]);
 		$permission = Permission::create(['name' => 'loss_productions.store'])->syncRoles([$role1, $role4]);
 		$permission = Permission::create(['name' => 'loss_productions.show'])->syncRoles([$role1, $role2, $role4]);
-
+        $permission = Permission::create(['name' => 'loss_productions.update'])->syncRoles([$role1, $role2, $role4]);
+        
 		// Permisos Items de Merma de Produccion
 		$permission = Permission::create(['name' => 'loss_productions_items.index'])->syncRoles([$role1, $role2, $role4]);
 		$permission = Permission::create(['name' => 'loss_productions_items.show'])->syncRoles([$role1, $role2, $role4]);
