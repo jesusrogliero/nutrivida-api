@@ -20,7 +20,8 @@ class CreateProductionsOrdersTable extends Migration
             $table->unsignedBigInteger('product_final_id');
             $table->foreign('product_final_id')->references('id')->on('products_finals');
             $table->decimal('quantity', 10, 2);
-            $table->boolean('state_id')->default(0);
+            $table->unsignedBigInteger('state_id');
+            $table->foreign('state_id')->references('id')->on('productions_orders_states');
             $table->timestamps();
         });
     }

@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             TestDataSeeder::class,
             SuppliesMinorsSeeder::class,
             FormulasSeeder::class,
+            ProductionsOrdersSeeder::class
         ]);
     }
 
