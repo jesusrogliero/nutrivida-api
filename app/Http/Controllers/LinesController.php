@@ -10,11 +10,11 @@ class LinesController extends Controller
 {
 
     public function __construct() {
-        $this->middleware('can:line.index')->only('index');
-        $this->middleware('can:line.store')->only('store');
-        $this->middleware('can:line.show')->only('show');
-        $this->middleware('can:line.update')->only('update');
-        $this->middleware('can:line.destroy')->only('destroy');
+        $this->middleware('can:lines.index')->only('index');
+        $this->middleware('can:lines.store')->only('store');
+        $this->middleware('can:lines.show')->only('show');
+        $this->middleware('can:lines.update')->only('update');
+        $this->middleware('can:lines.destroy')->only('destroy');
     }
     /**
      * Display a listing of the resource.
