@@ -42,7 +42,7 @@ class ProductionsOrdersController extends Controller
                 ["field" => "product_final", "conditions" => "products_finals.name"],
                 ["field" => "formula", "conditions" => "CONCAT(formulas.name, ' ', formulas.quantity_batch, 'Kg')"],
                 ["field" => "quantity", "conditions" => "CONCAT(FORMAT(productions_orders.quantity, 2), ' Kg')"],
-                ["field" => "state", "conditions" => "IF(productions_orders.state_id = 0, 'Pendiente', 'Completado')"],
+                ["field" => "state", "conditions" => "productions_orders_states.name"],
                 ["field" => "productions_orders.created_at"],
                 ["field" => "productions_orders.updated_at"]
             ];
@@ -51,6 +51,7 @@ class ProductionsOrdersController extends Controller
            $params["join"] = [
                 [ "type" => "inner", "join" => ["products_finals", "productions_orders.product_final_id", "=", "products_finals.id"] ],
                 [ "type" => "inner", "join" => ["formulas", "productions_orders.formula_id", "=", "formulas.id"] ],
+                [ "type" => "inner", "join" => ["productions_orders_states", "productions_orders_states.id", "=", "productions_orders.state_id"] ],
             ];
             
             # Obteniendo la lista
@@ -84,6 +85,7 @@ class ProductionsOrdersController extends Controller
             $new_order->formula_id = $request->formula_id;
             $new_order->product_final_id = $request->product_final_id;
             $new_order->quantity = $request->quantity;
+            $new_order->state_id = 1;
             $new_order->save();
 
             return response()->json('Orden de Producción Creada Correctamente', 201);
@@ -166,7 +168,7 @@ class ProductionsOrdersController extends Controller
         try{  
             $order = ProductionsOrder::findOrFail($id);
 
-            if($order->state_id === 1)
+            if($order->state_id != 1)
                 throw new \Exception("No es posible actualizar esta orden de producción", 1);
                 
             $order->formula_id = $request->formula_id;
@@ -199,7 +201,7 @@ class ProductionsOrdersController extends Controller
 
             $production_order = ProductionsOrder::findOrFail($id);
 
-            if($production_order->state_id === 1)
+            if($production_order->state_id != 1)
                 throw new \Exception("No es posible eliminar esta orden de producción", 1);
 
             $consumption_order = ProductionsConsumption::where('production_order_id', $production_order->id)->first();
