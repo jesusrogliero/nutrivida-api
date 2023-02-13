@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\GridboxNew;
 use App\Models\NonconformingProduct;
 use App\Models\PrimariesProduct;
+use App\Models\Transaction;
 
 class NonconformingProductsController extends Controller
 {
@@ -84,6 +85,28 @@ class NonconformingProductsController extends Controller
             $new_pnc->quantity = $request->quantity;
             $new_pnc->observation = $request->observation;
             $new_pnc->save();
+
+            $transaction = new Transaction([
+                'user_id' => $request->user()->id,
+                'action' => true,
+                'quantity_after' => $request->quantity,
+                'quantity_before' => 0,
+                'quantity' => $request->quantity,
+                'module' => 'productos primarios no conformes',
+                'observation' => 'Se creó ' . $primary_product->name 
+            ]);
+            $transaction->save();
+
+            $transaction = new Transaction([
+                'user_id' => $request->user()->id,
+                'action' => false,
+                'quantity_after' => $primary_product->stock - $request->quantity,
+                'quantity_before' => $primary_product->stock,
+                'quantity' => $request->quantity,
+                'module' => 'Productos Primarios',
+                'observation' => 'Se actualizó ' . $primary_product->name
+            ]);
+            $transaction->save();
 
             $primary_product->stock = $primary_product->stock - $request->quantity;
             $primary_product->save();
