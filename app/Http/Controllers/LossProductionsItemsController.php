@@ -101,6 +101,17 @@ class LossProductionsItemsController extends Controller
            if($request->mixing_area_l2 < 0) throw new \Exception("La merma en el area de mezclado no es correcta", 2);
 
            $loss_item = LossProductionsItem::findOrFail($id);
+
+           $production_order = \DB::table('loss_productions')
+           ->join('productions_consumptions', 'productions_consumptions.id', '=', 'loss_productions.consumption_id')
+           ->join('productions_orders', 'productions_orders.id', '=', 'productions_consumptions.production_order_id')
+           ->where('loss_productions.id', '=', $loss_item->loss_production_id)
+           ->select('productions_orders.*')
+           ->first();
+
+            if($production_order->state_id != 1)
+                throw new \Exception("Esta orden ya fue procesada!! No es posible editar los detalles de barrido");
+
            $loss_item->mixing_area_l1 = $request->mixing_area_l1;
            $loss_item->mixing_area_l2 = $request->mixing_area_l2;
            $loss_item->total = $loss_item->loss_quantity + ($request->mixing_area_l1 + $request->mixing_area_l2);

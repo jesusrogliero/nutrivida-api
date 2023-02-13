@@ -44,13 +44,22 @@ class LossProductionsController extends Controller
             if($request->hopper_auger < 0) throw new \Exception("Merma en Tornillo y Tolva no es correcto", 1);
             if($request->lab < 0) throw new \Exception("Cantidad de muestra de laboratorio no es correcta", 1);
 
+
+            $production_order = \DB::table('productions_orders')->select('productions_orders.*')
+            ->join('productions_consumptions', 'productions_consumptions.production_order_id', '=', 'productions_orders.id')
+            ->where('productions_consumptions.id', '=', $request->consumption_id)
+            ->first();
+
+            if($production_order->state_id != 1)
+                throw new \Exception("Esta orden ha sido procesada");
+                
             $consumption_items = ProductionsConsumptionsItem::where('production_consumption_id', $request->consumption_id)->get();
 
             if(empty($consumption_items))
                 throw new \Exception('No existe un consumo de producción');
             
             $loss_production = LossProduction::where('consumption_id', $request->consumption_id)->first();
-            if( !empty($loss_production))
+            if( !empty($loss_production) )
                 throw new \Exception('Ya existe un registro de merma');
 
             $new_loss_production = new LossProduction();
@@ -132,6 +141,18 @@ class LossProductionsController extends Controller
             if($request->lab < 0) throw new \Exception("Cantidad de muestra de laboratorio no es correcta", 1);
 
             $loss_production = LossProduction::findOrFail($id);
+
+            $production_order = \DB::table('loss_productions')
+            ->join('productions_consumptions', 'productions_consumptions.id', '=', 'loss_productions.consumption_id')
+            ->join('productions_orders', 'productions_orders.id', '=', 'productions_consumptions.production_order_id')
+            ->where('loss_productions.id', '=', $loss_production->id)
+            ->select('productions_orders.*')
+            ->first();
+
+            if($production_order->state_id != 1)
+                throw new \Exception("Esta orden ha sido procesada");
+
+           
             $loss_production->packing_area = $request->packing_area;
             $loss_production->hopper_auger = $request->hopper_auger;
             $loss_production->lab = $request->lab;
