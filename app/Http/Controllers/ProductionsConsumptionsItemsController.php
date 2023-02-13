@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\ProductionsConsumptionsItem;
 use App\Models\ProductionsConsumption;
+use App\Models\ProductionsOrder;
 use App\Models\FormulasItem;
 use App\Models\LossProduction;
 use App\Models\LossProductionsItem;
@@ -101,20 +102,22 @@ class ProductionsConsumptionsItemsController extends Controller
      */
     public static function ajust_items($consumption, $formula_id)
     {
-        
             $formulas_items = FormulasItem::find($formula_id)->get();
 
             foreach ($formulas_items as $formula_item) {
-                $item = ProductionsConsumptionsItem::where('primary_product_id', $formula_item->primary_product_id)->first();
+                $item = ProductionsConsumptionsItem::where([
+                    'primary_product_id' => $formula_item->primary_product_id,
+                    'production_consumption_id' => $consumption->id
+                ])->first();
 
                 $item->theoretical_consumption = $consumption->nro_batch * $formula_item->quantity;
                 $item->save();
 
                 $consumption->total_production = $consumption->total_production + $item->theoretical_consumption;
             }
-
-            self::generate_percentage_items($consumption->id);
             $consumption->save();
+            self::generate_percentage_items($consumption->id);
+            
     }
 
 
@@ -131,8 +134,11 @@ class ProductionsConsumptionsItemsController extends Controller
         $consumption_items = ProductionsConsumptionsItem::where('production_consumption_id', $consumption_id)->get();
 
         foreach ($consumption_items as $consumption_item) {
-            $consumption_item->consumption_percentage = ($consumption_item->consumption_production * 100) / $consumption->consumption_production;
-            $consumption_item->save();
+            
+            if($consumption->consumption_production > 0)
+                $consumption_item->consumption_percentage = ($consumption_item->consumption_production * 100) / $consumption->consumption_production;
+            
+                $consumption_item->save();
         }
     }
 
@@ -208,10 +214,17 @@ class ProductionsConsumptionsItemsController extends Controller
             if($request->remainder1 < 0) throw new \Exception("El remanente de la linea 1 es incorrecto");
             if($request->remainder2 < 0) throw new \Exception("El remanente de la linea 1 es incorrecto");
             
+            
+
             $consumption_item = ProductionsConsumptionsItem::findOrFail($id);
             $consumption = ProductionsConsumption::findOrFail($consumption_item->production_consumption_id);
 
+            $production_order = ProductionsOrder::findOrFail($consumption->production_order_id);
 
+            if($production_order->state_id != 1)
+                throw new \Exception('No es posible modificar una orden procesada');
+            
+            
             $consumption->consumption_production = $consumption->consumption_production - $consumption_item->consumption_production;
             $consumption->total_production = $consumption->total_production - $consumption_item->theoretical_consumption;
 
