@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\GridBoxNew;
 use App\Models\SuppliesMinor;
+use App\Models\Transaction;
 
 class SuppliesMinorsController extends Controller
 {
@@ -58,6 +59,8 @@ class SuppliesMinorsController extends Controller
     public function store(Request $request)
     {
         try {  
+            \DB::beginTransaction();
+
             if(empty($request->name)) throw new \Exception("El nombre del empaque es requerido", 1);
             if($request->stock < 0) throw new \Exception("La cantidad del Articulo no es correcta", 1);
             if($request->consumption_weight_package < 0) throw new \Exception("el peso por empaque no es correcto", 1);
@@ -69,9 +72,22 @@ class SuppliesMinorsController extends Controller
             $new_product->consumption_weight_package = $request->consumption_weight_package;
             $new_product->save();
 
+            $transaction = new Transaction([
+                'user_id' => $request->user()->id,
+                'action' => true,
+                'quantity_after' => $new_product->stock,
+                'quantity_before' => 0,
+                'quantity' => $new_product->stock,
+                'module' => 'Insumos Menores',
+                'observation' => 'Se creó ' . $new_product->name
+            ]);
+            $transaction->save();
+
+            \DB::commit();
             return response()->json('Guardado Correctamente', 201);
 
         } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),
@@ -115,26 +131,42 @@ class SuppliesMinorsController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            \DB::beginTransaction();
+
             if( empty($request->name) ) throw new \Exception("El nombre del producto es obligatorio");
             if( $request->stock < 0 ) throw new \Exception("La existencia no puede ser menor a cero");
             if($request->consumption_weight_package < 0) throw new \Exception("el peso por empaque no es correcto", 1);
 
             $product = SuppliesMinor::findOrFail($id);
+
+            $transaction = new Transaction([
+                'user_id' => $request->user()->id,
+                'action' => $product->stock > $request->stock ? false : true,
+                'quantity_after' => $request->stock,
+                'quantity_before' => $product->stock,
+                'quantity' => $product->stock - $request->stock,
+                'module' => 'Insumos Menores',
+                'observation' => 'Se actualizó ' . $product->name
+            ]);
+            $transaction->save();
+
             $product->name = $request->name;
             $product->stock = $request->stock;
-            $product->consumption_weight_package = $request->consumption_weight;
+            $product->consumption_weight_package = $request->consumption_weight_package;
             $product->save();
 
+            \DB::commit();
             return response()->json('Actualizado Correctamente', 202);
 
         } catch(\Exception $e) {
-             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
-             return \Response::json([
+            \DB::rollback();
+            \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
+            return \Response::json([
                  'file' => $e->getFile(),
                  'line' => $e->getLine(),
                  'message' => $e->getMessage(),
                  'code' => $e->getCode()
-             ], 422);
+            ], 422);
         }
     }
 
@@ -144,14 +176,30 @@ class SuppliesMinorsController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
+            \DB::beginTransaction();
+
             $product = SuppliesMinor::findOrFail($id);
+
+            $transaction = new Transaction([
+                'user_id' => $request->user()->id,
+                'action' => false,
+                'quantity_after' => 0,
+                'quantity_before' => $product->stock,
+                'quantity' => $product->stock,
+                'module' => 'Insumos Menores',
+                'observation' => 'Se eliminó '. $product->name
+            ]);
+            $transaction->save();
+
             $product->delete();
+            \DB::commit();
             return response()->json(null, 204);
 
         } catch(\Exception $e) {
+            \DB::rollback();
              \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
              return \Response::json([
                  'file' => $e->getFile(),

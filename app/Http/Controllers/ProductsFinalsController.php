@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\GridboxNew;
 use App\Models\ProductsFinal;
+use App\Models\Transaction;
 
 class ProductsFinalsController extends Controller
 {
@@ -58,6 +59,7 @@ class ProductsFinalsController extends Controller
     public function store(Request $request)
     {
         try {
+            \DB::beginTransaction();
 
             if( empty( $request->name) ) throw new \Exception("Debes ingresar el nombre del producto", 1);
             if( empty( $request->type) ) throw new \Exception("Debes ingresar el tipo de producto", 1);
@@ -72,9 +74,23 @@ class ProductsFinalsController extends Controller
                 'presentation' => $request->presentation,
             ]);
             $new_product->save();
+
+            $transaction = new Transaction([
+                'user_id' => $request->user()->id,
+                'action' => true,
+                'quantity_after' => $new_product->stock,
+                'quantity_before' => 0,
+                'quantity' => $new_product->stock,
+                'module' => 'Productos Finales',
+                'observation' => 'Se creó ' . $new_product->name
+            ]);
+            $transaction->save();
+
+            \DB::commit();
             return response()->json('Agregado Correctamente', 201);
 
         } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),

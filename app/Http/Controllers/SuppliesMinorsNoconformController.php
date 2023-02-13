@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\GridboxNew;
 use App\Models\SuppliesMinorsNoconform;
 use App\Models\SuppliesMinor;
+use App\Models\Transaction;
 
 class SuppliesMinorsNoconformController extends Controller
 {
@@ -65,6 +66,8 @@ class SuppliesMinorsNoconformController extends Controller
     public function store(Request $request)
     {
         try {  
+            \DB::beginTransaction();
+
             if(empty($request->supplie_minor_id)) throw new \Exception("Debes seleccionar el insumo antes de continuar", 1);
             if($request->stock < 0) throw new \Exception("La cantidad del insumo no es correcta", 1);
             
@@ -74,9 +77,23 @@ class SuppliesMinorsNoconformController extends Controller
             $new_product->quantity = $request->quantity;
             $new_product->save();
 
+
+            $transaction = new Transaction([
+                'user_id' => $request->user()->id,
+                'action' => true,
+                'quantity_after' => $new_product->quantity,
+                'quantity_before' => 0,
+                'quantity' => $new_product->quantity,
+                'module' => 'Insumos Menores',
+                'observation' => 'Se creó ' . SuppliesMinor::findOrFail($new_product->supplie_minor_id)->name
+            ]);
+            $transaction->save();
+
+            \DB::commit();
             return response()->json('Guardado Correctamente', 201);
 
         } catch(\Exception $e) {
+            \DB::rollback();
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
                 'file' => $e->getFile(),
