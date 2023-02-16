@@ -66,11 +66,15 @@ Route::group(['middleware' => ['auth:api']], function () {
 	Route::resource('supplies_minors_noconform', 'SuppliesMinorsNoconformController')->only(['index', 'store', 'show']);
 
 	Route::resource('purchases_orders', 'PurchasesOrderController');
+	Route::get('get_purchase_order_details/{id}', 'PurchasesOrderController@get_details');
 	Route::get('approve_purchase/{id}', 'PurchasesOrderController@approve');
 	Route::post('set_observation/{id}', 'PurchasesOrderController@set_observation');
 
 	Route::get('get_purchases_orders_items/{id}', 'PurchasesOrdersItemsController@index');
 	Route::resource('purchases_orders_items', 'PurchasesOrdersItemsController')->except('index');
+
+	Route::resource('products_finals_to_warehouses', 'ProductsFinalsToWarehousesController')->only(['index', 'show', 'update']);
+	Route::get('enter_products_finals_to_warehouses/{order_id}', 'ProductsFinalsToWarehousesController@enter_inventory');
 
 
 	// Produccion
@@ -95,5 +99,12 @@ Route::group(['middleware' => ['auth:api']], function () {
 	Route::resource('loss_productions_items', 'LossProductionsItemsController')->only(['show', 'update']);
 	Route::get('loss_production_items/{loss_production_id}', 'LossProductionsItemsController@get_items' );
 
+
+	// Estadisticas
+	Route::post('get_statistics', 'StatisticsController@get_statistics');
+	Route::get('get_purchases_data_chart', 'StatisticsController@get_purchases_data_chart');
+	Route::get('get_prd_final_data_chart', 'StatisticsController@get_prd_final_data_chart');
+	Route::get('get_consumption_data_chart', 'StatisticsController@get_consumption_data_chart');
+	
 	
 });
