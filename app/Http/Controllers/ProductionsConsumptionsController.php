@@ -10,6 +10,7 @@ use App\Http\Controllers\ProductionsConsumptionsItemsController as ConsumptionsI
 use App\Models\ConsumptionsSuppliesMinor;
 use App\Models\PrimariesProduct;
 use App\Models\SuppliesMinor;
+use App\Models\ProductsFinalsToWarehouse;
 use App\Models\Transaction;
 
 class ProductionsConsumptionsController extends Controller
@@ -103,66 +104,72 @@ class ProductionsConsumptionsController extends Controller
             $consumption_items = ProductionsConsumptionsItem::where('production_consumption_id', $consumption->id)->get();
             $consumption_supply_minor = ConsumptionsSuppliesMinor::where('consumption_id', $consumption->id)->first();
         
-            if( !empty($consumption_supply_minor)) {
+            if( empty($consumption_supply_minor) )
+                throw new \Exception('No has establecido el cosumo de los empaques');
+          
+            $supply_minor = SuppliesMinor::findOrFail($consumption_supply_minor->supply_minor_id);
+            $transaction = new Transaction([
+                'user_id' => $request->user()->id,
+                'action' => false,
+                'quantity_after' => $supply_minor->stock - $consumption_supply_minor->consumption,
+                'quantity_before' => $supply_minor->stock,
+                'quantity' => $consumption_supply_minor->consumption,
+                'module' => 'Insumo menor',
+                'observation' => 'Se modificó ' . $supply_minor->name
+            ]);
+            $transaction->save();
 
-
-                $supply_minor = SuppliesMinor::findOrFail($consumption_supply_minor->supply_minor_id);
-                $transaction = new Transaction([
-                    'user_id' => $request->user()->id,
-                    'action' => false,
-                    'quantity_after' => $supply_minor->stock - $consumption_supply_minor->consumption,
-                    'quantity_before' => $supply_minor->stock,
-                    'quantity' => $consumption_supply_minor->consumption,
-                    'module' => 'Insumo menor',
-                    'observation' => 'Se modificó ' . $supply_minor->name
-                ]);
-                $transaction->save();
-
-                if($supply_minor->stock < $consumption_supply_minor->consumption) {
-                    throw new \Exception('No hay suficiente '. $supply_minor->name . ' Dentro del inventario');
-                }
-                $supply_minor->stock = $supply_minor->stock - $consumption_supply_minor->consumption;
-                $supply_minor->save();
-                
-
-                $big_bags = SuppliesMinor::findOrFail(10);
-                $transaction = new Transaction([
-                    'user_id' => $request->user()->id,
-                    'action' => false,
-                    'quantity_after' => $big_bags->stock - $consumption_supply_minor->consumption_bags,
-                    'quantity_before' => $big_bags->stock,
-                    'quantity' => $consumption_supply_minor->consumption_bags,
-                    'module' => 'Insumo menor',
-                    'observation' => 'Se modificó ' . $big_bags->name
-                ]);
-                $transaction->save();
-                
-                if($big_bags->stock < $consumption_supply_minor->consumption_bags) {
-                    throw new \Exception('No hay suficiente '. $big_bags->name . ' Dentro del inventario');
-                }
-                $big_bags->stock = $big_bags->stock - $consumption_supply_minor->consumption_bags;
-                $big_bags->save();
-    
-                
-                $envoplast = SuppliesMinor::findOrFail(11);
-                $transaction = new Transaction([
-                    'user_id' => $request->user()->id,
-                    'action' => false,
-                    'quantity_after' => $envoplast->stock - $consumption_supply_minor->envoplast_consumption,
-                    'quantity_before' => $envoplast->stock,
-                    'quantity' => $consumption_supply_minor->envoplast_consumption,
-                    'module' => 'Insumo menor',
-                    'observation' => 'Se modificó ' . $envoplast->name
-                ]);
-                $transaction->save();
-
-                if($envoplast->stock < $consumption_supply_minor->envoplast_consumption) {
-                    throw new \Exception('No hay suficiente '. $envoplast->name . ' Dentro del inventario');
-                }
-                $envoplast->stock = $envoplast->stock - $consumption_supply_minor->envoplast_consumption;
-                $envoplast->save();
-
+            if($supply_minor->stock < $consumption_supply_minor->consumption) {
+                throw new \Exception('No hay suficiente '. $supply_minor->name . ' Dentro del inventario');
             }
+            $supply_minor->stock = $supply_minor->stock - $consumption_supply_minor->consumption;
+            $supply_minor->save();
+            
+
+            $big_bags = SuppliesMinor::findOrFail(10);
+            $transaction = new Transaction([
+                'user_id' => $request->user()->id,
+                'action' => false,
+                'quantity_after' => $big_bags->stock - $consumption_supply_minor->consumption_bags,
+                'quantity_before' => $big_bags->stock,
+                'quantity' => $consumption_supply_minor->consumption_bags,
+                'module' => 'Insumo menor',
+                'observation' => 'Se modificó ' . $big_bags->name
+            ]);
+            $transaction->save();
+            
+            if($big_bags->stock < $consumption_supply_minor->consumption_bags) {
+                throw new \Exception('No hay suficiente '. $big_bags->name . ' Dentro del inventario');
+            }
+            $big_bags->stock = $big_bags->stock - $consumption_supply_minor->consumption_bags;
+            $big_bags->save();
+
+            
+            $envoplast = SuppliesMinor::findOrFail(11);
+            $transaction = new Transaction([
+                'user_id' => $request->user()->id,
+                'action' => false,
+                'quantity_after' => $envoplast->stock - $consumption_supply_minor->envoplast_consumption,
+                'quantity_before' => $envoplast->stock,
+                'quantity' => $consumption_supply_minor->envoplast_consumption,
+                'module' => 'Insumo menor',
+                'observation' => 'Se modificó ' . $envoplast->name
+            ]);
+            $transaction->save();
+
+            if($envoplast->stock < $consumption_supply_minor->envoplast_consumption) {
+                throw new \Exception('No hay suficiente '. $envoplast->name . ' Dentro del inventario');
+            }
+            $envoplast->stock = $envoplast->stock - $consumption_supply_minor->envoplast_consumption;
+            $envoplast->save();
+
+
+            $order_to_warehouse = new ProductsFinalsToWarehouse([
+                'product_final_id' => $production_order->product_final_id,
+                'quantity' => $consumption->consumption_production,
+                'state_id' => 1
+            ]);
+            $order_to_warehouse->save();
            
             foreach($consumption_items as $item) {
                 
