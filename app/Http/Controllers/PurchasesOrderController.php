@@ -21,7 +21,8 @@ class PurchasesOrderController extends Controller
         $this->middleware('can:purchases_orders.update')->only('update');
         $this->middleware('can:purchases_orders.destroy')->only('destroy');
         $this->middleware('can:purchases_orders.approve_purchase')->only('approve_purchase');
-        $this->middleware('can:purchases_orders.set_observation')->only('set_observation');
+        $this->middleware('can:purchases_orders.set_observation')->only(['set_observation', 'get_details'] );
+        //$this->middleware('can:purchases_orders.get_details')->only('get_details');
     }
 
     /**
@@ -55,6 +56,43 @@ class PurchasesOrderController extends Controller
             # Obteniendo la lista
             $purchases_orders = GridboxNew::pagination("purchases_orders", $params, false, $request);
             return response()->json($purchases_orders);
+        } catch(\Exception $e) {
+            \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
+            return \Response::json([
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ], 422);
+        }
+    }
+
+    public function get_details(Request $request, $id) {
+        try{
+            
+            $order = PurchasesOrder::findOrFail($id);
+
+
+            $provider = \DB::table('providers')
+            ->select('providers.*')
+            ->selectRaw("CONCAT(types_identities.type, '-', providers.identity) as identityF")
+            ->join('types_identities', 'types_identities.id', '=' , 'providers.type_identity_id')
+            ->where('providers.id', '=', $order->provider_id)
+            ->get();
+            
+            $items = \DB::table('purchases_orders_items')
+            ->select('primaries_products.name as primary_product', 'purchases_orders_items.nro_lote', 'purchases_orders_items.due_date')
+            ->selectRaw('CONCAT( FORMAT(purchases_orders_items.quantity, 2), " Kg") as quantity, CONCAT( FORMAT(purchases_orders_items.nonconform_quantity, 2), " Kg") as nonconform_quantity')
+            ->join('primaries_products', 'primaries_products.id', '=' , 'purchases_orders_items.primary_product_id')
+            ->where('purchases_orders_items.purchase_order_id', '=', $order->id)
+            ->get();
+
+            return response()->json([
+                'purchase_order' => $order,
+                'purchase_order_items' => $items,
+                'provider' => $provider[0]
+            ]);
+
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
             return \Response::json([
