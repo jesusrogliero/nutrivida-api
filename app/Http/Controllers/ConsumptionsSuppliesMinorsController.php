@@ -64,7 +64,7 @@ class ConsumptionsSuppliesMinorsController extends Controller
             $consumption_supply->envoplast_consumption = $consumption->total_production / 960;
             $consumption_supply->save();
 
-            return response()->json('Guardado Correctamente', 201);
+            return response()->json('Consumo Guardado Correctamente', 201);
 
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
