@@ -64,6 +64,7 @@ class RolesSeeder extends Seeder
          $permission = Permission::create(['name' => 'purchases_orders.destroy'])->syncRoles([$role1, $role2, $role3]);
          $permission = Permission::create(['name' => 'purchases_orders.approve_purchase'])->syncRoles([$role1, $role2, $role3]);
          $permission = Permission::create(['name' => 'purchases_orders.set_observation'])->syncRoles([$role1, $role2, $role3]);
+         $permission = Permission::create(['name' => 'purchases_orders.get_details'])->syncRoles([$role1, $role2, $role3]);
 
                  
         // Permisos Items de la orden de ingreso
@@ -141,6 +142,12 @@ class RolesSeeder extends Seeder
 		$permission = Permission::create(['name' => 'loss_productions_items.index'])->syncRoles([$role1, $role2, $role4]);
 		$permission = Permission::create(['name' => 'loss_productions_items.show'])->syncRoles([$role1, $role2, $role4]);
 		$permission = Permission::create(['name' => 'loss_productions_items.update'])->syncRoles([$role1, $role4]);
+
+        // Permisos Ingreso producto final al almacen
+		$permission = Permission::create(['name' => 'products_finals_to_warehouses.index'])->syncRoles([$role1, $role2, $role3]);
+		$permission = Permission::create(['name' => 'products_finals_to_warehouses.enter_inventory'])->syncRoles([$role1, $role3]);
+		$permission = Permission::create(['name' => 'products_finals_to_warehouses.show'])->syncRoles([$role1, $role2, $role3]);
+        $permission = Permission::create(['name' => 'products_finals_to_warehouses.update'])->syncRoles([$role1, $role2, $role3]);
     }
 }
 
