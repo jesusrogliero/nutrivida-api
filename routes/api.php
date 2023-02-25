@@ -92,6 +92,8 @@ Route::group(['middleware' => ['auth:api']], function () {
 
 	Route::resource('productions_consumptions_items','ProductionsConsumptionsItemsController')->only(['show', 'update']);
 	Route::get('get_consumption_items/{consumption_id}', 'ProductionsConsumptionsItemsController@get_consumption_items');
+    Route::get('get_consumptions_details/{production_order_id}', 'ProductionsConsumptionsController@get_consumptions_details');
+
 
 	Route::resource('consumptions_supplies_minors', 'ConsumptionsSuppliesMinorsController')->only(['index', 'store', 'show']);
 
