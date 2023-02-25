@@ -11,6 +11,7 @@ use App\Models\ConsumptionsSuppliesMinor;
 use App\Models\PrimariesProduct;
 use App\Models\SuppliesMinor;
 use App\Models\ProductsFinalsToWarehouse;
+use App\Models\LossProduction;
 use App\Models\Transaction;
 
 class ProductionsConsumptionsController extends Controller
@@ -20,6 +21,7 @@ class ProductionsConsumptionsController extends Controller
         $this->middleware('can:productions_consumptions.store')->only('store');
         $this->middleware('can:productions_consumptions.show')->only('show');
         $this->middleware('can:productions_consumptions.approve_order')->only('approve');
+       $this->middleware('can:productions_consumptions.get_consumptions_details')->only('get_consumptions_details');
     }
 
     /**
@@ -226,6 +228,71 @@ class ProductionsConsumptionsController extends Controller
                 ->where('productions_consumptions.production_order_id', $id)
                 ->first();
             return response()->json($consumption);
+           
+        } catch(\Exception $e) {
+            \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
+            return \Response::json([
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ], 422);
+        }
+    }
+
+     /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function get_consumptions_details($production_order_id)
+    {
+        try {
+
+            $production_order = ProductionsOrder::findOrFail($production_order_id);
+
+            $consumption = \DB::table('productions_consumptions')
+            ->select('productions_consumptions.*')
+            ->where('production_order_id', '=', $production_order_id)
+            ->first();
+
+            $select = 'select ';
+            $select .= 'primaries_products.name as primary_product, ';
+            $select .= "CONCAT(FORMAT(productions_consumptions_items.to_mixer, 2), ' Kg') as to_mixer, ";
+            $select .= "CONCAT(FORMAT(productions_consumptions_items.remainder1, 2), ' Kg') as remainder1, ";
+            $select .= "CONCAT(FORMAT(productions_consumptions_items.remainder2, 2), ' Kg') as remainder2, ";
+            $select .= "CONCAT(FORMAT(productions_consumptions_items.consumption_production, 2), ' Kg') as consumption_production, ";
+            $select .= "CONCAT(FORMAT(productions_consumptions_items.consumption_percentage, 2), ' %') as consumption_percentage, ";
+            $select .= "CONCAT(FORMAT(productions_consumptions_items.theoretical_consumption, 2), ' Kg') as theoretical_consumption, ";
+            $select .= "CONCAT(FORMAT((productions_consumptions_items.consumption_production - productions_consumptions_items.theoretical_consumption), 2), ' Kg') as difference ";
+            $select .= "FROM productions_consumptions_items ";
+            $select .= "INNER JOIN primaries_products on primaries_products.id = productions_consumptions_items.primary_product_id ";
+            $select .= "WHERE productions_consumptions_items.production_consumption_id = " . $consumption->id;
+            $consumption_items = \DB::select($select);
+
+
+            $select = 'select ';
+            $select .= 'supplies_minors.name as supply_name, ';
+            $select .= "CONCAT(FORMAT(consumptions_supplies_minors.number_packages, 2), ' UNID') as number_packages, ";
+            $select .= "CONCAT(FORMAT(consumptions_supplies_minors.consumption, 2), ' Kg') as consumption, ";
+            $select .= "CONCAT(FORMAT(consumptions_supplies_minors.consumption_bags, 2), ' Kg') as consumption_bags, ";
+            $select .= "CONCAT(FORMAT(consumptions_supplies_minors.envoplast_consumption, 2), ' Kg') as envoplast_consumption ";
+            $select .= "FROM consumptions_supplies_minors ";
+            $select .= "INNER JOIN supplies_minors on supplies_minors.id = consumptions_supplies_minors.supply_minor_id ";
+            $select .= "WHERE consumptions_supplies_minors.consumption_id = " . $consumption->id;
+            $consumption_supply_minor = \DB::select($select);
+            $consumption_supply_minor = $consumption_supply_minor[0];
+
+            $loss_production = LossProduction::where('consumption_id', $consumption->id)->first();
+
+            return response()->json([
+                'production_order' => $production_order,
+                'production_consumption' => $consumption,
+                'production_consumption_items' => $consumption_items,
+                'consumption_supply_minor' => $consumption_supply_minor,
+                'loss_production' => $loss_production
+            ]);
            
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
