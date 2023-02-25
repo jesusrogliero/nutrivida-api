@@ -39,8 +39,8 @@ class ProductionsConsumptionsItemsController extends Controller
                 ["field" => "remainder2", "conditions" => "CONCAT(FORMAT(productions_consumptions_items.remainder2, 2), ' Kg')"],
                 ["field" => "consumption_production", "conditions" => "CONCAT(FORMAT(productions_consumptions_items.consumption_production, 2), ' Kg')"],
                 ["field" => "consumption_percentage", "conditions" => "CONCAT(productions_consumptions_items.consumption_percentage, ' %')"],
-                ["field" => "theoretical_consumption", "conditions" => "CONCAT(productions_consumptions_items.theoretical_consumption, ' Kg')"],
-                ["field" => "difference", "conditions" => "CONCAT((productions_consumptions_items.consumption_production - productions_consumptions_items.theoretical_consumption), ' Kg')"],
+                ["field" => "theoretical_consumption", "conditions" => "CONCAT(FORMAT(productions_consumptions_items.theoretical_consumption, 2), ' Kg')"],
+                ["field" => "difference", "conditions" => "CONCAT(FORMAT((productions_consumptions_items.consumption_production - productions_consumptions_items.theoretical_consumption), 2), ' Kg')"],
                 ["field" => "productions_consumptions_items.created_at"],
                 ["field" => "productions_consumptions_items.updated_at"]
             ];
