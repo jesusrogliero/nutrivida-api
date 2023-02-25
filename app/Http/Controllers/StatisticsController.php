@@ -10,30 +10,30 @@ class StatisticsController extends Controller
     public function get_statistics(Request $request)
     {
         try{  
-           
-            $purchases_statistics = \DB::table('purchases_orders')
-            ->selectRaw('SUM(purchases_orders.total_load) as quantity')
-            ->where('purchases_orders.state_id', '=', 2)
-            ->where('created_at', '>', 'INTERVAL ' . $request->interval . ' ' . $request->interval_period)
-            ->first();
 
-            $consumptions_statistics = \DB::table('productions_consumptions')
-            ->join('productions_orders', 'productions_orders.id', '=', 'productions_consumptions.production_order_id')
-            ->selectRaw('SUM(productions_consumptions.consumption_production) as quantity')
-            ->where('productions_orders.state_id', '=', 2)
-            ->where('productions_consumptions.created_at', '>', 'INTERVAL ' . $request->interval . ' ' . $request->interval_period)
-            ->first();
+            $interval = null;
+            if( !empty($request->interval) && !empty($request->interval_period)) {
+               $interval =  'NOW() - INTERVAL ' . $request->interval . ' ' . $request->interval_period;
+            }     
 
-            $finals_to_warehouse_statistics = \DB::table('products_finals_to_warehouses')
-            ->selectRaw('SUM(products_finals_to_warehouses.quantity) as quantity')
-            ->where('products_finals_to_warehouses.state_id', '=', 2)
-            ->where('products_finals_to_warehouses.date', '>', 'INTERVAL ' . $request->interval . ' ' . $request->interval_period)
-            ->first();
+            $purchases_statistics = 'select CONCAT(FORMAT(SUM(purchases_orders.total_load), 2), " Kg") as quantity from purchases_orders WHERE purchases_orders.state_id = 2';
+            $consumptions_statistics = 'select CONCAT(FORMAT(SUM(productions_consumptions.consumption_production), 2), " Kg") as quantity from productions_consumptions INNER JOIN productions_orders on productions_orders.id = productions_consumptions.production_order_id WHERE productions_orders.state_id = 2';
+            $finals_to_warehouse_statistics = 'select CONCAT(FORMAT(SUM(products_finals_to_warehouses.quantity), 2), " Kg") as quantity from products_finals_to_warehouses WHERE products_finals_to_warehouses.state_id = 2';
+
+            if( !empty($interval) ) {
+                $purchases_statistics .= " and purchases_orders.created_at >= " . $interval;
+                $consumptions_statistics .= " and productions_consumptions.created_at >= " . $interval;
+                $finals_to_warehouse_statistics .= " and products_finals_to_warehouses.created_at >= " . $interval;
+            }
+
+            $purchases_statistics = \DB::select($purchases_statistics);
+            $consumptions_statistics = \DB::select($consumptions_statistics);
+            $finals_to_warehouse_statistics = \DB::select($finals_to_warehouse_statistics);
 
             return response()->json([
-                'purchases_statistics' => $purchases_statistics->quantity,
-                'consumptions_statistics' => $consumptions_statistics->quantity,
-                'finals_to_warehouse_statistics' => $finals_to_warehouse_statistics->quantity
+                'purchases_statistics' => $purchases_statistics[0]->quantity,
+                'consumptions_statistics' => $consumptions_statistics[0]->quantity,
+                'finals_to_warehouse_statistics' => $finals_to_warehouse_statistics[0]->quantity
             ]);
 
         } catch(\Exception $e) {
