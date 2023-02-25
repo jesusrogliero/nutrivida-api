@@ -11,7 +11,7 @@ class GridboxNew {
 		$page = empty( $params["page"] ) ? 1 : ( $params["page"] > 0 ? $params["page"] : 1 );
 		$offset =  ($limit * ($page - 1) );
 		$order_by = empty( $params["order_by"] ) ? [] : json_decode($params['order_by'],true);
-		$filters = empty( $params["filters"] ) ? [] : $params["filters"];
+		# $filters = empty( $params["filters"] ) ? [] : $params["filters"];
 		$selects = "";
 
 
@@ -63,8 +63,10 @@ class GridboxNew {
 		if( !empty($params["select"])  ){
 			foreach ($params["select"] as $column) {
 
+				/*
 				if( !empty($filters[ $column["field"]  ]) )
 					$db->having($column["field"], "LIKE",  "%{$filters[$column["field"]]}%");
+				*/	
 			
 				if( !empty($order_by[ $column["field"]] )) {
 					$db->orderBy($column["field"], $order_by[ $column["field"]] );
