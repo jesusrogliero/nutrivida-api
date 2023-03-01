@@ -49,6 +49,10 @@ class TestDataSeeder extends Seeder
                 "name" => 'Sal',
                 "stock" => 36.79,
             ],   
+            [ 
+                "name" => 'Suero De Leche',
+                "stock" => 330.35,
+            ],  
        ];
 
         foreach ($products as $product) {
