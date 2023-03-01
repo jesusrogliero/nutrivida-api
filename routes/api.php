@@ -56,8 +56,9 @@ Route::group(['middleware' => ['auth:api']], function () {
 
 	// Almacen
 	Route::resource('products_finals', 'ProductsFinalsController')->only(['index', 'store', 'show']);
+	Route::get('get_products_finals', 'ProductsFinalsController@get_products_finals');
 
-	Route::resource('nonconforming_products', 'NonconformingProductsController')->only(['index', 'store', 'show']);
+	Route::resource('nonconforming_products', 'NonconformingProductsController')->only(['index', 'store', 'show', 'update']);
 
 	Route::resource('primaries_products', 'PrimariesProductsController');
 	Route::get('get_all_primaries_products', 'PrimariesProductsController@get_all_primaries_products');
