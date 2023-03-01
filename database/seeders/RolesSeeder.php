@@ -146,7 +146,7 @@ class RolesSeeder extends Seeder
 
         // Permisos Ingreso producto final al almacen
 		$permission = Permission::create(['name' => 'products_finals_to_warehouses.index'])->syncRoles([$role1, $role2, $role3]);
-		$permission = Permission::create(['name' => 'products_finals_to_warehouses.enter_inventory'])->syncRoles([$role1, $role3]);
+		$permission = Permission::create(['name' => 'products_finals_to_warehouses.enter_inventory'])->syncRoles([$role1, $role2, $role3]);
 		$permission = Permission::create(['name' => 'products_finals_to_warehouses.show'])->syncRoles([$role1, $role2, $role3]);
         $permission = Permission::create(['name' => 'products_finals_to_warehouses.update'])->syncRoles([$role1, $role2, $role3]);
     }
