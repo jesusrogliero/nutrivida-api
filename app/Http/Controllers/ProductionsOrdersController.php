@@ -39,7 +39,7 @@ class ProductionsOrdersController extends Controller
             #establezco los campos a mostrar
             $params["select"] = [
                 ["field" => "productions_orders.id"],
-                ["field" => "product_final", "conditions" => "CONCAT(products_finals.name, ' ', products_finals.presentation)"],
+                ["field" => "product_final", "conditions" => "CONCAT(products_finals.name, ' ', products_finals.presentation, ' - ', products_finals.type)"],
                 ["field" => "formula", "conditions" => "CONCAT(formulas.name, ' ', formulas.quantity_batch, 'Kg')"],
                 ["field" => "quantity", "conditions" => "CONCAT(FORMAT(productions_orders.quantity, 2), ' Kg')"],
                 ["field" => "state", "conditions" => "productions_orders_states.name"],
