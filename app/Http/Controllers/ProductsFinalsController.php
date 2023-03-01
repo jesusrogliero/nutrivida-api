@@ -11,7 +11,7 @@ class ProductsFinalsController extends Controller
 {
     
     public function __construct() {
-        $this->middleware('can:product_final.index')->only('index');
+        $this->middleware('can:product_final.index')->only(['index', 'get_products_finals']);
         $this->middleware('can:product_final.store')->only('store');
         $this->middleware('can:product_final.show')->only('show');
     }
@@ -49,6 +49,40 @@ class ProductsFinalsController extends Controller
             ], 422);
         }
     }
+
+    
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function get_products_finals(Request $request)
+    {
+        try {
+            $params = $request->all();
+
+            #establezco los campos a mostrar
+            $params["select"] = [
+                ["field" => "products_finals.id"],
+                ["field" => "name", "conditions" => "CONCAT(products_finals.name, ' ', products_finals.presentation, ' - ', products_finals.type )"],
+            ];
+            
+            # Obteniendo la lista
+            $primaries_products = GridboxNew::pagination("products_finals", $params, false, $request);
+            return response()->json($primaries_products);
+        } catch(\Exception $e) {
+            \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
+            return \Response::json([
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ], 422);
+        }
+    }
+
+
 
     /**
      * Store a newly created resource in storage.
