@@ -32,7 +32,7 @@ class ProductsFinalsToWarehousesController extends Controller
             $params["select"] = [
                 ["field" => "products_finals_to_warehouses.id"],
                 ["field" => "number_control", "conditions" => "products_finals_to_warehouses.number_control"],
-                ["field" => "product_final", "conditions" => "CONCAT(products_finals.name, ' ', products_finals.presentation)"],
+                ["field" => "product_final", "conditions" => "CONCAT(products_finals.name, ' ', products_finals.presentation, ' - ', products_finals.type)"],
                 ["field" => "date", "conditions" => "products_finals_to_warehouses.date"],
                 ["field" => "work_area", "conditions" => "products_finals_to_warehouses.work_area"],
                 ["field" => "origin", "conditions" => "products_finals_to_warehouses.origin"],
@@ -114,7 +114,7 @@ class ProductsFinalsToWarehousesController extends Controller
                 'quantity_after' => $product_final->stock + $order->quantity,
                 'quantity_before' => $product_final->stock,
                 'quantity' => $order->quantity,
-                'module' => 'Productos Primarios',
+                'module' => 'Productos Terminados',
                 'observation' => 'Se ingresó ' . $product_final->name
             ]);
             $transaction->save();
@@ -152,6 +152,7 @@ class ProductsFinalsToWarehousesController extends Controller
     {
         try {
 
+            if($request->quantity < 0 || empty($request->quantity) ) throw new \Exception("Cantidad de Producto Final ingresada no es correcta");
             if( empty($request->number_control) ) throw new \Exception('Debe ingresar el numero de control de la orden');
             if( empty($request->date) ) throw new \Exception('Debe ingresar la fecha del ingreso');
             if( empty($request->work_area) ) throw new \Exception('Debe ingresar el area de trabajo');
@@ -164,6 +165,7 @@ class ProductsFinalsToWarehousesController extends Controller
             if($order->state_id != 1)
                 throw new \Exception('Esta orden ya fue entregada al Almacen');
 
+            $order->quantity = $request->quantity;
             $order->number_control = $request->number_control;
             $order->date = $request->date;
             $order->work_area = $request->work_area;
