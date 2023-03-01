@@ -14,6 +14,7 @@ class NonconformingProductsController extends Controller
         $this->middleware('can:nonconforming_products.index')->only('index');
         $this->middleware('can:nonconforming_products.store')->only('store');
         $this->middleware('can:nonconforming_products.show')->only('show');
+        $this->middleware('can:nonconforming_products.update')->only('update');
     }
 
     /**
@@ -138,6 +139,34 @@ class NonconformingProductsController extends Controller
         try {
             $product_NC = NonconformingProduct::findOrFail($id);
             return response()->json($product_NC);
+
+        } catch(\Exception $e) {
+             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
+             return \Response::json([
+                 'file' => $e->getFile(),
+                 'line' => $e->getLine(),
+                 'message' => $e->getMessage(),
+                 'code' => $e->getCode()
+             ], 422);
+        }
+        
+    }
+
+    /**
+     * update the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+
+            $product_NC = NonconformingProduct::findOrFail($id);
+            $product_NC->observation = $request->observation;
+            $product_NC->save();
+
+            return response()->json("Guardado Correctamente", 202);
 
         } catch(\Exception $e) {
              \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
