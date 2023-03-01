@@ -168,7 +168,7 @@ class ProductionsConsumptionsController extends Controller
 
             $order_to_warehouse = new ProductsFinalsToWarehouse([
                 'product_final_id' => $production_order->product_final_id,
-                'quantity' => $consumption->consumption_production,
+                'quantity' => 0,
                 'state_id' => 1
             ]);
             $order_to_warehouse->save();
