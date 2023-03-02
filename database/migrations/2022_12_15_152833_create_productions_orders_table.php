@@ -22,6 +22,7 @@ class CreateProductionsOrdersTable extends Migration
             $table->decimal('quantity', 10, 2);
             $table->unsignedBigInteger('state_id');
             $table->foreign('state_id')->references('id')->on('productions_orders_states');
+            $table->string('issued_by');
             $table->timestamps();
         });
     }

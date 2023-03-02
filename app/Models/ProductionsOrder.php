@@ -13,6 +13,7 @@ class ProductionsOrder extends Model
         'formula_id',
         'products_final_id',
         'quantity',
-        'state_id'
+        'state_id',
+        'issued_by'
     ];
 }

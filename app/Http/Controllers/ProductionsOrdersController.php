@@ -81,11 +81,14 @@ class ProductionsOrdersController extends Controller
             if(empty($request->formula_id)) throw new \Exception("Debes selecciona una formula", 1);
             if(empty($request->quantity)) throw new \Exception("La cantidad a producir es requerida", 1);
 
+            $user = $request->user();
+
             $new_order = new ProductionsOrder();
             $new_order->formula_id = $request->formula_id;
             $new_order->product_final_id = $request->product_final_id;
             $new_order->quantity = $request->quantity;
             $new_order->state_id = 1;
+            $new_order->issued_by = $user->name . ' ' . $user->lastname;
             $new_order->save();
 
             return response()->json('Orden de Producción Creada Correctamente', 201);
