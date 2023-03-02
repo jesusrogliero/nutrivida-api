@@ -252,6 +252,26 @@ class ProductionsConsumptionsController extends Controller
 
             $production_order = ProductionsOrder::findOrFail($production_order_id);
 
+
+            $select = 'select ';
+            $select .= 'CONCAT(products_finals.name, " ", products_finals.presentation) as product_final_name, ';
+            $select .= 'products_finals.type as product_final_type, ';
+            $select .= "CONCAT(FORMAT(productions_orders.quantity, 2), ' Kg') as quantity, ";
+            $select .= "productions_orders_states.name as production_order_state, ";
+            $select .= "productions_orders.issued_by, ";
+            $select .= "productions_orders.created_at ";
+            $select .= "FROM productions_orders ";
+            $select .= "INNER JOIN products_finals on products_finals.id = productions_orders.product_final_id ";
+            $select .= "INNER JOIN formulas on formulas.id = productions_orders.formula_id ";
+            $select .= "INNER JOIN productions_orders_states on productions_orders_states.id = productions_orders.state_id ";
+            $select .= "WHERE productions_orders.id = " . $production_order_id;
+            $production_order = \DB::select($select);
+
+            if(!empty($production_order))
+                $production_order = $production_order[0];
+            else
+                $production_order = null;
+
             $consumption = \DB::table('productions_consumptions')
             ->select('productions_consumptions.*')
             ->where('production_order_id', '=', $production_order_id)
@@ -282,7 +302,11 @@ class ProductionsConsumptionsController extends Controller
             $select .= "INNER JOIN supplies_minors on supplies_minors.id = consumptions_supplies_minors.supply_minor_id ";
             $select .= "WHERE consumptions_supplies_minors.consumption_id = " . $consumption->id;
             $consumption_supply_minor = \DB::select($select);
-            $consumption_supply_minor = $consumption_supply_minor[0];
+
+            if(!empty($consumption_supply_minor))
+                $consumption_supply_minor = $consumption_supply_minor[0];
+            else
+                $consumption_supply_minor = null;
 
             $loss_production = LossProduction::where('consumption_id', $consumption->id)->first();
 
