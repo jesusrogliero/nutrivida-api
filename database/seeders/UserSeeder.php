@@ -21,14 +21,14 @@ class UserSeeder extends Seeder
             'lastname' => 'Rogliero Colmenares',
             'email' => 'admin@api.com',
             'password' => Hash::make('Jesus24may99!'),
-        ])->assignRole('super_admin');
+        ])->assignRole('Admin');
 
         $user2 =  User::create([
             'name' => 'Patricia',
             'lastname' => 'Rogliero Colmenares',
             'email' => 'admin1@api.com',
             'password' => Hash::make('Jesus24may99!'),
-        ])->assignRole('Manager');
+        ])->assignRole('Gerente');
 
 
         $user3 =  User::create([
@@ -36,7 +36,7 @@ class UserSeeder extends Seeder
             'lastname' => 'Trentin',
             'email' => 'admin2@api.com',
             'password' => Hash::make('manager')
-        ])->assignRole('Warehouse_Coordinator');
+        ])->assignRole('Coordinador de Almacen');
 
         
         $user4 =  User::create([
@@ -44,7 +44,7 @@ class UserSeeder extends Seeder
             'lastname' => 'Rogliero',
             'email' => 'admin3@api.com',
             'password' => Hash::make('manager')
-        ])->assignRole('Production_Coordinator');
+        ])->assignRole('Coordinador de Producción');
 
     }
 }
