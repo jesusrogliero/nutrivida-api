@@ -90,7 +90,8 @@ class AuthController extends Controller
 	    	return response()->json([
                 'token' => $tokenResult->accessToken,
                 'expires_at'   => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
-                'user' => $user
+                'user' => $user,
+                'role' => $user->getRoleNames()[0]
 	        ], 202);
 
     	}catch(\Exception $e) {
@@ -109,8 +110,9 @@ class AuthController extends Controller
     }
 
     public function getUser(Request $request) {
-        return response()->json($request->user(), 200);
+        $user = $request->user();
+        $role = $user->getRoleNames();
+        return response()->json(['user' => $user, 'role' => $role[0]], 200);
     }
-
 
 }
