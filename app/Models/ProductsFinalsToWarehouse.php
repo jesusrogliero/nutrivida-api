@@ -19,6 +19,7 @@ class ProductsFinalsToWarehouse extends Model
         'quantity',
         'description',
         'guide_sunagro',
-        'state_id'
+        'state_id',
+        'production_order_id'
     ];
 }

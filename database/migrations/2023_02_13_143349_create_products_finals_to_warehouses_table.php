@@ -27,6 +27,8 @@ class CreateProductsFinalsToWarehousesTable extends Migration
             $table->decimal('quantity');
             $table->string('description')->nullable();
             $table->string('guide_sunagro')->nullable();
+            $table->foreign('production_order_id')->references('id')->on('productions_orders');
+            $table->string('production_order_id')->nullable();
             $table->timestamps();
         });
     }
