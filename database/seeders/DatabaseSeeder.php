@@ -29,7 +29,8 @@ class DatabaseSeeder extends Seeder
             SuppliesMinorsSeeder::class,
             FormulasSeeder::class,
             ProductionsOrdersSeeder::class,
-            ProductsFinalsToWarehousesStatesSeeder::class
+            ProductsFinalsToWarehousesStatesSeeder::class,
+            DispatchStateSeeder::class
         ]);
     }
 
