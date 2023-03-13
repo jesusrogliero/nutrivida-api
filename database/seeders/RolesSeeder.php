@@ -74,6 +74,21 @@ class RolesSeeder extends Seeder
         $permission = Permission::create(['name' => 'purchases_orders_items.update'])->syncRoles([$role1, $role2, $role3]);
         $permission = Permission::create(['name' => 'purchases_orders_items.destroy'])->syncRoles([$role1, $role2, $role3]);
 
+        // Permisos Orden despacho
+        $permission = Permission::create(['name' => 'dispatch.index'])->syncRoles([$role1, $role2, $role3, $role4]);
+        $permission = Permission::create(['name' => 'dispatch.store'])->syncRoles([$role1, $role2, $role3]);
+        $permission = Permission::create(['name' => 'dispatch.show'])->syncRoles([$role1, $role2, $role3]);
+        $permission = Permission::create(['name' => 'dispatch.update'])->syncRoles([$role1, $role2, $role3]);
+        $permission = Permission::create(['name' => 'dispatch.destroy'])->syncRoles([$role1, $role2, $role3]);
+        $permission = Permission::create(['name' => 'dispatch.approve'])->syncRoles([$role1, $role2, $role3]);
+
+        // Permisos Orden despacho
+        $permission = Permission::create(['name' => 'dispatch_item.index'])->syncRoles([$role1, $role2, $role3, $role4]);
+        $permission = Permission::create(['name' => 'dispatch_item.store'])->syncRoles([$role1, $role2, $role3]);
+        $permission = Permission::create(['name' => 'dispatch_item.show'])->syncRoles([$role1, $role2, $role3]);
+        $permission = Permission::create(['name' => 'dispatch_item.update'])->syncRoles([$role1, $role2, $role3]);
+        $permission = Permission::create(['name' => 'dispatch_item.destroy'])->syncRoles([$role1, $role2, $role3]);
+
         // Administracion-------------------------------------------------------------------------------------------------
 
         // Permisos Provedores
@@ -82,6 +97,13 @@ class RolesSeeder extends Seeder
         $permission = Permission::create(['name' => 'providers.show'])->syncRoles([$role1, $role2]);
         $permission = Permission::create(['name' => 'providers.update'])->syncRoles([$role1]);
         $permission = Permission::create(['name' => 'providers.destroy'])->syncRoles([$role1]);
+
+        // Permisos Receptores
+        $permission = Permission::create(['name' => 'receivers.index'])->syncRoles([$role1, $role2]);
+        $permission = Permission::create(['name' => 'receivers.store'])->syncRoles([$role1, $role2]);
+        $permission = Permission::create(['name' => 'receivers.show'])->syncRoles([$role1, $role2]);
+        $permission = Permission::create(['name' => 'receivers.update'])->syncRoles([$role1]);
+        $permission = Permission::create(['name' => 'receivers.destroy'])->syncRoles([$role1]);
 
      
         // Produccion---------------------------------------------------------------------------------------------------

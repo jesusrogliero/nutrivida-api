@@ -53,6 +53,7 @@ Route::group(['middleware' => ['auth:api']], function () {
 
 	// Administracion
 	Route::resource('providers', 'ProvidersController');
+	Route::resource('receivers', 'ReceiversController');
 
 	// Almacen
 	Route::resource('products_finals', 'ProductsFinalsController')->only(['index', 'store', 'show']);
@@ -101,6 +102,14 @@ Route::group(['middleware' => ['auth:api']], function () {
 	Route::resource('loss_productions', 'LossProductionsController')->except('delete');
 	Route::resource('loss_productions_items', 'LossProductionsItemsController')->only(['show', 'update']);
 	Route::get('loss_production_items/{loss_production_id}', 'LossProductionsItemsController@get_items' );
+
+	Route::resource('dispatches', 'DispatchesController');
+	Route::post('set_dispatch_observation/{id}', 'DispatchesController@set_observation');
+	Route::get('approve_dispatch/{id}', 'DispatchesController@approve');
+
+	Route::resource('dispatches_items', 'DispatchesItemsController')->except('index');
+	Route::get('dispatch_items/{dispatch_id}', 'DispatchesItemsController@index');
+
 
 
 	// Estadisticas
