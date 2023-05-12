@@ -105,6 +105,7 @@ Route::group(['middleware' => ['auth:api']], function () {
 
 	Route::resource('dispatches', 'DispatchesController');
 	Route::post('set_dispatch_observation/{id}', 'DispatchesController@set_observation');
+	Route::get('get_dispatch_details/{id}', 'DispatchesController@get_details');
 	Route::get('approve_dispatch/{id}', 'DispatchesController@approve');
 
 	Route::resource('dispatches_items', 'DispatchesItemsController')->except('index');
