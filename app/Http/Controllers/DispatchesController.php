@@ -19,6 +19,7 @@ class DispatchesController extends Controller
         $this->middleware('can:dispatch.update')->only('update');
         $this->middleware('can:dispatch.destroy')->only('destroy');
         $this->middleware('can:dispatch.approve')->only('approve');
+        $this->middleware('can:dispatch.get_details')->only('get_details');
     }
 
     /**
@@ -149,6 +150,43 @@ class DispatchesController extends Controller
             $dispatch->save();
             
             return response()->json('Guardado', 202);
+
+        } catch(\Exception $e) {
+            \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
+            return \Response::json([
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'message' => $e->getMessage(),
+                'code' => $e->getCode()
+            ], 422);
+        }
+    }
+
+    public function get_details(Request $request, $id) {
+        try{
+            
+            $order = Dispatch::findOrFail($id);
+
+
+            $receiver = \DB::table('receivers')
+            ->select('receivers.*')
+            ->selectRaw("CONCAT(types_identities.type, '-', receivers.identity) as identityF")
+            ->join('types_identities', 'types_identities.id', '=' , 'receivers.type_identity_id')
+            ->where('receivers.id', '=', $order->receiver_id)
+            ->get();
+            
+            $items = \DB::table('dispatches_items')
+            ->select('products_finals.name as product_final')
+            ->selectRaw('CONCAT( FORMAT(dispatches_items.quantity, 2), " Kg") as quantity')
+            ->join('products_finals', 'products_finals.id', '=' , 'dispatches_items.product_final_id')
+            ->where('dispatches_items.dispatch_id', '=', $order->id)
+            ->get();
+
+            return response()->json([
+                'dispatch' => $order,
+                'dispatch_items' => $items,
+                'receiver' => $receiver[0]
+            ]);
 
         } catch(\Exception $e) {
             \Log::info("Error  ({$e->getCode()}):  {$e->getMessage()}  in {$e->getFile()} line {$e->getLine()}");
