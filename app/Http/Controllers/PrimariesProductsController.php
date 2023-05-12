@@ -63,7 +63,10 @@ class PrimariesProductsController extends Controller
             if( empty($request->name) )
             throw new \Exception("El nombre del producto es obligatorio");
             
-            if( $request->stock < 0 )
+            if( !is_numeric($request->stock) )
+                throw new \Exception("La existencia no es correcta");
+            
+            if(  $request->stock < 0 )
                 throw new \Exception("La existencia no puede ser menor a cero");
 
            $new_product = new PrimariesProduct();
@@ -161,6 +164,7 @@ class PrimariesProductsController extends Controller
 
             if( empty($request->name) ) throw new \Exception("El nombre del producto es obligatorio");
             if ( empty( $request->stock) ) throw new \Exception("La existencia del producto es obligatoria");
+            if( !is_numeric($request->stock) ) throw new \Exception("La existencia no es correcta");
             if( $request->stock < 0 ) throw new \Exception("La existencia no puede ser menor a cero");
 
             $product = PrimariesProduct::findOrFail($id);
