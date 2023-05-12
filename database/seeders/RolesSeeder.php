@@ -81,6 +81,7 @@ class RolesSeeder extends Seeder
         $permission = Permission::create(['name' => 'dispatch.update'])->syncRoles([$role1, $role2, $role3]);
         $permission = Permission::create(['name' => 'dispatch.destroy'])->syncRoles([$role1, $role2, $role3]);
         $permission = Permission::create(['name' => 'dispatch.approve'])->syncRoles([$role1, $role2, $role3]);
+        $permission = Permission::create(['name' => 'dispatch.get_details'])->syncRoles([$role1, $role2, $role3, $role4]);
 
         // Permisos Orden despacho
         $permission = Permission::create(['name' => 'dispatch_item.index'])->syncRoles([$role1, $role2, $role3, $role4]);
